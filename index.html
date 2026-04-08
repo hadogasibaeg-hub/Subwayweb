@@ -1,627 +1,290 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>수도권 광역 전철망 (데이터 내장형)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
-        
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #0f172a;
-            color: #f1f5f9;
-            margin: 0;
-            overflow: hidden;
-            touch-action: none;
-            user-select: none;
-        }
+import React, { useState, useEffect, useRef } from 'react';
+import { ZoomIn, ZoomOut, RotateCcw, Search, Navigation, Menu, ChevronLeft, X, Info } from 'lucide-react';
 
-        .main-layout {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            overflow: hidden;
-        }
+const App = () => {
+  // --- 데이터 섹션 ---
+  const lines = {
+    "L1": { name: "1호선", color: "#0052A4", stations: ["연천", "동두천", "의정부", "회룡", "도봉산", "창동", "광운대", "석계", "청량리", "신설동", "동묘앞", "종로3가", "시청", "서울역", "남영", "용산", "노량진", "신길", "신도림", "구로", "부천", "부평", "인천"] },
+    "L1B": { name: "1호선", color: "#0052A4", isBranch: true, stations: ["구로", "가산디지털단지", "금정", "수원", "고색", "오이도", "신창"] },
+    "L2": { name: "2호선", color: "#00A84D", stations: ["시청", "을지로3가", "동대문역사문화공원", "신당", "왕십리", "성수", "건대입구", "잠실", "종합운동장", "삼성", "선릉", "강남", "교대", "서초", "사당", "신림", "대림", "신도림", "당산", "합정", "홍대입구", "신촌", "이대", "충정로", "시청"] },
+    "L3": { name: "3호선", color: "#EF7C1C", stations: ["대화", "대곡", "연신내", "불광", "독립문", "경복궁", "종로3가", "을지로3가", "충무로", "약수", "옥수", "압구정", "신사", "고속터미널", "교대", "남부터미널", "양재", "수서", "가락시장", "오금"] },
+    "L4": { name: "4호선", color: "#00A5DE", stations: ["진접", "불암산", "노원", "창동", "성신여대입구", "혜화", "동대문", "동대문역사문화공원", "충무로", "명동", "서울역", "숙대입구", "삼각지", "이촌", "동작", "이수", "사당", "금정", "안산", "오이도"] },
+    "L5": { name: "5호선", color: "#996CAC", stations: ["방화", "김포공항", "마곡", "여의도", "신길", "공덕", "충정로", "광화문", "종로3가", "을지로4가", "동대문역사문화공원", "청구", "왕십리", "군자", "천호", "강동", "하남검단산"] },
+    "L6": { name: "6호선", color: "#CD7C2F", stations: ["응암", "디지털미디어시티", "합정", "공덕", "효창공원앞", "삼각지", "이태원", "약수", "청구", "신당", "동묘앞", "보문", "안암", "고려대", "석계", "태릉입구", "봉화산", "신내"] },
+    "L7": { name: "7호선", color: "#747F00", stations: ["장암", "도봉산", "노원", "태릉입구", "상봉", "군자", "건대입구", "강남구청", "논현", "고속터미널", "이수", "대림", "가산디지털단지", "온수", "부평구청", "석남"] },
+    "L8": { name: "8호선", color: "#E6186C", stations: ["별내", "구리", "천호", "몽촌토성", "잠실", "석촌", "가락시장", "복정", "모란"] },
+    "L9": { name: "9호선", color: "#BDB092", stations: ["김포공항", "마곡나루", "당산", "여의도", "샛강", "노량진", "동작", "고속터미널", "신논현", "선정릉", "종합운동장", "석촌", "올림픽공원", "중앙보훈병원"] },
+    "UI": { name: "우이신설선", color: "#B0AD00", stations: ["북한산우이", "솔밭공원", "4.19민주묘지", "가오리", "화계", "삼양", "삼양사거리", "솔샘", "북한산보국문", "정릉", "성신여대입구", "보문", "신설동"] },
+    "UJB": { name: "의정부경전철", color: "#FDA600", stations: ["발곡", "회룡", "범골", "의정부시청", "흥선", "중앙", "동오", "새말", "탑석"] },
+    "GPG": { name: "김포골드라인", color: "#AD8605", stations: ["양촌", "구래", "마산", "장기", "운양", "걸포북변", "사우", "풍무", "고촌", "김포공항"] },
+    "SL": { name: "신림선", color: "#6789CA", stations: ["샛강", "대방", "서울지방병무청", "보라매", "보라매공원", "보라매병원", "당곡", "신림", "서원", "서울대벤처타운", "관악산"] },
+    "EVL": { name: "에버라인", color: "#5FB440", stations: ["기흥", "강남대", "지석", "어정", "동백", "초당", "삼가", "시청·용인대", "명지대", "김량장", "운동장·송담대", "고진", "보평", "둔전", "전대·에버랜드"] }
+  };
 
-        .map-viewport {
-            flex-grow: 1;
-            position: relative;
-            background: #0b1120;
-            overflow: hidden;
-            cursor: grab;
-        }
+  const stations = {
+    "연천": {x: 1400, y: 100}, "동두천": {x: 1400, y: 200}, "의정부": {x: 1400, y: 300}, "회룡": {x: 1400, y: 400}, 
+    "발곡": {x: 1250, y: 400}, "범골": {x: 1550, y: 400}, "의정부시청": {x: 1650, y: 400}, "흥선": {x: 1750, y: 400}, "중앙": {x: 1850, y: 400}, "동오": {x: 1950, y: 400}, "새말": {x: 2050, y: 400}, "탑석": {x: 2150, y: 400},
+    "도봉산": {x: 1400, y: 500}, "창동": {x: 1400, y: 600}, "광운대": {x: 1400, y: 700}, "석계": {x: 1400, y: 800}, "청량리": {x: 1400, y: 1000}, "신설동": {x: 1200, y: 1100}, "동묘앞": {x: 1100, y: 1100}, "종로3가": {x: 1000, y: 1200}, "시청": {x: 900, y: 1300}, "서울역": {x: 900, y: 1400}, "남영": {x: 900, y: 1450}, "용산": {x: 900, y: 1550}, "노량진": {x: 800, y: 1650}, "신길": {x: 700, y: 1700}, "신도림": {x: 600, y: 1800}, "구로": {x: 500, y: 1900},
+    "부천": {x: 350, y: 1900}, "부평": {x: 200, y: 1900}, "인천": {x: 100, y: 1900},
+    "가산디지털단지": {x: 500, y: 2000}, "금정": {x: 500, y: 2200}, "수원": {x: 600, y: 2500}, "고색": {x: 500, y: 2500}, "오이도": {x: 300, y: 2500}, "신창": {x: 600, y: 2800},
+    "을지로3가": {x: 1200, y: 1300}, "동대문역사문화공원": {x: 1300, y: 1300}, "신당": {x: 1400, y: 1300}, "왕십리": {x: 1500, y: 1300}, "성수": {x: 1600, y: 1400}, "건대입구": {x: 1600, y: 1500}, "잠실": {x: 1700, y: 1600}, "종합운동장": {x: 1600, y: 1700}, "삼성": {x: 1500, y: 1700}, "선릉": {x: 1400, y: 1700}, "강남": {x: 1300, y: 1700}, "교대": {x: 1200, y: 1700}, "서초": {x: 1100, y: 1700}, "사당": {x: 1000, y: 1900}, "신림": {x: 800, y: 1900}, "대림": {x: 600, y: 1800}, "당산": {x: 700, y: 1600}, "합정": {x: 700, y: 1500}, "홍대입구": {x: 800, y: 1400}, "신촌": {x: 900, y: 1350}, "이대": {x: 950, y: 1350}, "충정로": {x: 950, y: 1300},
+    "대화": {x: 400, y: 600}, "대곡": {x: 600, y: 800}, "연신내": {x: 900, y: 900}, "불광": {x: 950, y: 950}, "독립문": {x: 950, y: 1100}, "경복궁": {x: 1050, y: 1100}, "충무로": {x: 1200, y: 1400}, "약수": {x: 1300, y: 1450}, "압구정": {x: 1300, y: 1550}, "고속터미널": {x: 1200, y: 1650}, "남부터미널": {x: 1200, y: 1750}, "양재": {x: 1300, y: 1850}, "수서": {x: 1600, y: 1850}, "가락시장": {x: 1700, y: 1850}, "오금": {x: 1800, y: 1850},
+    "진접": {x: 1800, y: 500}, "불암산": {x: 1700, y: 600}, "노원": {x: 1600, y: 600}, "성신여대입구": {x: 1250, y: 1000}, "혜화": {x: 1250, y: 1100}, "동대문": {x: 1300, y: 1200}, "명동": {x: 1100, y: 1400}, "숙대입구": {x: 950, y: 1450}, "삼각지": {x: 1000, y: 1550}, "이촌": {x: 1100, y: 1650}, "동작": {x: 1100, y: 1750}, "이수": {x: 1000, y: 1800}, "안산": {x: 400, y: 2300},
+    "방화": {x: 300, y: 1300}, "김포공항": {x: 400, y: 1400}, "마곡": {x: 500, y: 1400}, "여의도": {x: 800, y: 1600}, "공덕": {x: 900, y: 1500}, "광화문": {x: 1000, y: 1150}, "을지로4가": {x: 1250, y: 1250}, "청구": {x: 1400, y: 1350}, "군자": {x: 1600, y: 1300}, "천호": {x: 1800, y: 1300}, "강동": {x: 1900, y: 1300}, "하남검단산": {x: 2100, y: 1300},
+    "응암": {x: 800, y: 1000}, "디지털미디어시티": {x: 700, y: 1200}, "효창공원앞": {x: 950, y: 1500}, "이태원": {x: 1100, y: 1450}, "보문": {x: 1350, y: 1100}, "안암": {x: 1400, y: 1050}, "고려대": {x: 1450, y: 1000}, "태릉입구": {x: 1600, y: 800}, "봉화산": {x: 1700, y: 800}, "신내": {x: 1800, y: 800},
+    "장암": {x: 1600, y: 400}, "상봉": {x: 1600, y: 1000}, "강남구청": {x: 1400, y: 1600}, "논현": {x: 1300, y: 1600}, "온수": {x: 400, y: 1850}, "부평구청": {x: 200, y: 1850}, "석남": {x: 100, y: 1850},
+    "별내": {x: 1800, y: 1100}, "구리": {x: 1800, y: 1200}, "몽촌토성": {x: 1750, y: 1550}, "석촌": {x: 1700, y: 1700}, "복정": {x: 1700, y: 1950}, "모란": {x: 1700, y: 2050},
+    "마곡나루": {x: 500, y: 1500}, "샛강": {x: 800, y: 1750}, "신논현": {x: 1300, y: 1650}, "선정릉": {x: 1400, y: 1650}, "올림픽공원": {x: 1900, y: 1700}, "중앙보훈병원": {x: 2000, y: 1700},
+    "양촌": {x: 50, y: 1400}, "구래": {x: 100, y: 1400}, "마산": {x: 150, y: 1400}, "장기": {x: 200, y: 1400}, "운양": {x: 250, y: 1400}, "걸포북변": {x: 300, y: 1400}, "사우": {x: 350, y: 1400}, "풍무": {x: 350, y: 1450}, "고촌": {x: 350, y: 1500},
+    "대방": {x: 800, y: 1700}, "서울지방병무청": {x: 800, y: 1750}, "보라매": {x: 800, y: 1800}, "보라매공원": {x: 800, y: 1850}, "보라매병원": {x: 850, y: 1850}, "당곡": {x: 900, y: 1850}, "서원": {x: 800, y: 1950}, "서울대벤처타운": {x: 800, y: 2000}, "관악산": {x: 800, y: 2100},
+    "기흥": {x: 1300, y: 1950}, "강남대": {x: 1400, y: 1950}, "지석": {x: 1500, y: 1950}, "어정": {x: 1600, y: 1950}, "동백": {x: 1650, y: 2000}, "초당": {x: 1650, y: 2050}, "삼가": {x: 1650, y: 2100}, "시청·용인대": {x: 1750, y: 2100}, "명지대": {x: 1850, y: 2100}, "김량장": {x: 1950, y: 2100}, "운동장·송담대": {x: 2050, y: 2100}, "고진": {x: 2100, y: 2150}, "보평": {x: 2100, y: 2200}, "둔전": {x: 2100, y: 2250}, "전대·에버랜드": {x: 2100, y: 2350},
+    "북한산우이": {x: 1250, y: 500}, "솔밭공원": {x: 1250, y: 550}, "4.19민주묘지": {x: 1250, y: 600}, "가오리": {x: 1250, y: 650}, "화계": {x: 1250, y: 700}, "삼양": {x: 1250, y: 750}, "삼양사거리": {x: 1250, y: 800}, "솔샘": {x: 1250, y: 850}, "북한산보국문": {x: 1250, y: 900}, "정릉": {x: 1250, y: 950}
+  };
 
-        .map-viewport:active { cursor: grabbing; }
+  // --- 상태 관리 ---
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 0.8 });
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [highlight, setHighlight] = useState(null);
+  
+  const mapRef = useRef(null);
 
-        .subway-canvas {
-            position: absolute;
-            width: 6000px;
-            height: 6000px;
-            background: #0b1120;
-            transform-origin: 0 0;
-            will-change: transform;
-        }
+  // 화면 중앙 정렬 로직
+  const moveTo = (x, y, customScale = null) => {
+    if (!mapRef.current) return;
+    const currentScale = customScale || transform.scale;
+    const { clientWidth, clientHeight } = mapRef.current;
+    
+    setTransform(prev => ({
+      scale: currentScale,
+      x: (clientWidth / 2) - (x * currentScale),
+      y: (clientHeight / 2) - (y * currentScale)
+    }));
+  };
 
-        #svg-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
+  // 확대/축소
+  const handleZoom = (factor) => {
+    setTransform(prev => {
+      const newScale = Math.min(3.0, Math.max(0.1, prev.scale * factor));
+      const { clientWidth, clientHeight } = mapRef.current;
+      const centerX = clientWidth / 2;
+      const centerY = clientHeight / 2;
 
-        .river-path {
-            fill: none;
-            stroke: #1e3a8a;
-            stroke-width: 200;
-            opacity: 0.15;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            filter: blur(10px);
-        }
+      return {
+        scale: newScale,
+        x: centerX - ((centerX - prev.x) / prev.scale) * newScale,
+        y: centerY - ((centerY - prev.y) / prev.scale) * newScale
+      };
+    });
+  };
 
-        .subway-path {
-            fill: none;
-            stroke-width: 12;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
+  // 검색 시 자동 이동
+  useEffect(() => {
+    if (searchTerm.length >= 1) {
+      const found = Object.keys(stations).find(name => name === searchTerm);
+      if (found) {
+        moveTo(stations[found].x, stations[found].y, 1.2);
+        setSelectedStation(found);
+      }
+    }
+  }, [searchTerm]);
 
-        .station {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            background: #fff;
-            border: 3px solid #0f172a;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 10;
-            transform: translate(-50%, -50%);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+  useEffect(() => {
+    const t = setTimeout(() => moveTo(stations["서울역"].x, stations["서울역"].y), 100);
+    return () => clearTimeout(t);
+  }, []);
 
-        .station-label {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            font-size: 13px;
-            font-weight: 700;
-            color: #cbd5e1;
-            pointer-events: none;
-            text-shadow: 0px 2px 4px rgba(0,0,0,0.9);
-        }
-
-        .station.transfer {
-            width: 26px;
-            height: 26px;
-            border-width: 5px;
-            z-index: 20;
-        }
-
-        .station.active {
-            box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.25);
-            border-color: #fff !important;
-            transform: translate(-50%, -50%) scale(1.3);
-            z-index: 150;
-        }
-
-        .info-sidebar {
-            width: 400px;
-            min-width: 400px;
-            background: rgba(15, 23, 42, 0.98);
-            backdrop-filter: blur(25px);
-            border-left: 1px solid #1e293b;
-            padding: 2.5rem;
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .info-sidebar.collapsed { transform: translateX(100%); position: absolute; right: 0; height: 100%; }
-
-        .toggle-handle {
-            position: absolute;
-            top: 25px;
-            right: 420px;
-            z-index: 1100;
-            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .info-sidebar.collapsed + .toggle-handle { right: 25px; }
-
-        .toggle-btn {
-            background: #3b82f6;
-            color: white;
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-            cursor: pointer;
-        }
-
-        .zoom-controls {
-            position: absolute;
-            bottom: 40px;
-            left: 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 500;
-        }
-
-        .zoom-btn {
-            width: 56px;
-            height: 56px;
-            background: rgba(30, 41, 59, 0.95);
-            border: 1px solid #475569;
-            border-radius: 16px;
-            color: white;
-            font-size: 1.6rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .line-badge {
-            padding: 4px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 800;
-            color: white;
-            margin: 0 8px 8px 0;
-            display: inline-block;
-        }
-
-        .search-input {
-            width: 100%;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
-            padding: 16px 20px;
-            color: white;
-            font-size: 16px;
-            outline: none;
-        }
-
-        .loader {
-            width: 20px;
-            height: 20px;
-            border: 3px solid #3b82f6;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            display: inline-block;
-            animation: rotation 1s linear infinite;
-        }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .ai-content {
-            font-size: 0.95rem;
-            line-height: 1.7;
-            color: #cbd5e1;
-        }
-        
-        .ai-content h3 {
-            color: #3b82f6;
-            font-weight: 800;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-        
-        .ai-content li {
-            margin-bottom: 0.5rem;
-            position: relative;
-            padding-left: 1.2rem;
-        }
-        
-        .ai-content li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #3b82f6;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="main-layout">
-        <div class="map-viewport" id="viewport">
-            <div class="zoom-controls">
-                <button id="zoom-in" class="zoom-btn" title="확대">+</button>
-                <button id="zoom-out" class="zoom-btn" title="축소">-</button>
-                <button id="zoom-reset" class="zoom-btn" title="초기화">⟲</button>
+  return (
+    <div className="flex h-screen w-screen bg-[#0b0f19] text-white overflow-hidden select-none">
+      
+      {/* 좌측 사이드바 */}
+      <aside className={`fixed lg:relative z-50 h-full bg-[#1e293b] border-r border-white/5 transition-all duration-300 shadow-2xl ${isMenuOpen ? 'w-80 opacity-100 translate-x-0' : 'w-0 -translate-x-full opacity-0 pointer-events-none overflow-hidden'}`}>
+        <div className="p-6 flex flex-col h-full w-80">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-600 rounded-lg"><Navigation size={20}/></div>
+              <h1 className="text-xl font-bold tracking-tight">서울 지하철</h1>
             </div>
+            <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-white/10 rounded-full text-slate-400">
+              <ChevronLeft size={20}/>
+            </button>
+          </div>
 
-            <div class="subway-canvas" id="canvas">
-                <svg id="svg-layer" width="6000" height="6000">
-                    <path class="river-path" d="M -500 3500 C 500 3550, 1500 3350, 2500 3500 C 3500 3650, 4500 3450, 6500 3500" />
-                </svg>
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16}/>
+            <input 
+              className="w-full bg-slate-900/50 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-600"
+              placeholder="역 이름을 입력하세요..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2">
+            <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest px-1">노선별 필터</h3>
+            <div className="grid grid-cols-1 gap-2">
+              {Object.entries(lines).filter(([_, l]) => !l.isBranch).map(([id, line]) => (
+                <button 
+                  key={id}
+                  onClick={() => setHighlight(highlight === line.name ? null : line.name)}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${highlight === line.name ? 'bg-indigo-600/20 border-indigo-500/50 text-white' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}
+                >
+                  <div className="w-3 h-3 rounded-full" style={{backgroundColor: line.color}} />
+                  <span className="text-xs font-semibold">{line.name}</span>
+                </button>
+              ))}
             </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* 맵 메인 영역 */}
+      <main ref={mapRef} className="flex-1 relative bg-[#0b1120] overflow-hidden cursor-grab active:cursor-grabbing">
+        {!isMenuOpen && (
+          <button onClick={() => setIsMenuOpen(true)} className="absolute top-6 left-6 z-40 p-4 bg-indigo-600 rounded-2xl shadow-xl hover:bg-indigo-500 transition-all">
+            <Menu size={20}/>
+          </button>
+        )}
+
+        <div 
+          className="absolute inset-0"
+          style={{ 
+            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+            transformOrigin: '0 0'
+          }}
+          onMouseDown={(e) => {
+            const startX = e.clientX - transform.x;
+            const startY = e.clientY - transform.y;
+            const move = (mE) => setTransform(v => ({ ...v, x: mE.clientX - startX, y: mE.clientY - startY }));
+            const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+            window.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', up);
+          }}
+        >
+          {/* 1. 노선 그리기 (SVG) */}
+          <svg width="4000" height="4000" className="absolute top-0 left-0 overflow-visible" style={{ zIndex: 10 }}>
+            {Object.entries(lines).map(([id, line]) => {
+              const pts = line.stations.map(s => stations[s]).filter(Boolean).map(p => `${p.x},${p.y}`).join(' ');
+              if (!pts) return null;
+              
+              // 노선 흐림 처리 조건 (검색어 포함 혹은 노선 선택 시)
+              const hasSearchMatch = !searchTerm || line.stations.some(s => s.includes(searchTerm));
+              const isHighlight = (!highlight || highlight === line.name) && hasSearchMatch;
+              
+              return (
+                <polyline 
+                  key={id} 
+                  points={pts} 
+                  stroke={line.color} 
+                  strokeWidth="14" 
+                  fill="none" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  style={{ opacity: isHighlight ? 0.8 : 0.1, transition: 'opacity 0.3s' }}
+                />
+              );
+            })}
+          </svg>
+
+          {/* 2. 역 아이콘 및 이름 (HTML 레이어) */}
+          <div className="absolute top-0 left-0" style={{ zIndex: 20 }}>
+            {Object.entries(stations).map(([name, pos]) => {
+              const atLines = Object.values(lines).filter(l => l.stations.includes(name));
+              const isTr = atLines.length > 1; 
+              const isSel = selectedStation === name;
+              
+              // 필터링 단일 로직 (반복되지 않도록 한 번만 계산)
+              const isSearchMatched = !searchTerm || name.includes(searchTerm);
+              const isLineMatched = !highlight || atLines.some(l => l.name === highlight);
+              const opacity = (isSearchMatched && isLineMatched) ? 1 : 0.15;
+
+              return (
+                <div 
+                  key={name} 
+                  className="absolute"
+                  style={{ 
+                    left: `${pos.x}px`, 
+                    top: `${pos.y}px`,
+                    opacity: opacity,
+                    transition: 'opacity 0.3s'
+                  }}
+                >
+                  {/* 역 아이콘 */}
+                  <div 
+                    className={`absolute rounded-full transition-transform duration-300 bg-white border-[4px] cursor-pointer ${isSel ? 'ring-8 ring-indigo-500/40 z-50 scale-125' : 'z-10 hover:scale-110'}`}
+                    style={{ 
+                      width: '24px', 
+                      height: '24px',
+                      transform: 'translate(-50%, -50%)',
+                      borderColor: isTr ? '#1e293b' : atLines[0]?.color,
+                    }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setSelectedStation(name); 
+                      moveTo(pos.x, pos.y); 
+                    }}
+                  />
+
+                  {/* 역 이름 레이블 */}
+                  <div 
+                    className="absolute whitespace-nowrap pointer-events-none text-center"
+                    style={{ 
+                      top: '18px',
+                      left: '0',
+                      transform: 'translateX(-50%)',
+                    }}
+                  >
+                    <span className={`text-[13px] font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] ${isSel ? 'text-indigo-400 scale-110' : 'text-slate-100'}`}>
+                      {name}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <aside class="info-sidebar" id="sidebar">
-            <div class="search-container relative mb-10">
-                <input type="text" id="station-search" class="search-input" placeholder="역 검색 (예: 서울역, 강남)...">
-                <div id="search-results" class="search-results absolute top-full left-0 right-0 bg-slate-800 border border-slate-700 rounded-2xl mt-2 max-h-60 overflow-y-auto hidden z-[2000]"></div>
-            </div>
-
-            <div id="welcome-view">
-                <h1 class="text-3xl font-black mb-2 text-white tracking-tighter">수도권 전철망 가이드</h1>
-                <p class="text-blue-400 text-sm mb-8 font-bold">네트워크 연결 없이도 정보를 바로 확인하세요</p>
-                
-                <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800">
-                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4">주요 운행 노선</h3>
-                    <div id="legend" class="grid grid-cols-2 gap-y-3 text-sm"></div>
-                </div>
-            </div>
-
-            <div id="detail-view" class="hidden h-full flex flex-col">
-                <div id="line-badges" class="flex flex-wrap mb-4"></div>
-                <h2 id="st-name" class="text-4xl font-black text-white mb-6 tracking-tight"></h2>
-                <div class="bg-slate-800/40 rounded-3xl p-6 flex-grow overflow-y-auto border border-white/5">
-                    <div id="ai-response-container">
-                        <div id="loading-spinner" class="hidden items-center gap-3 text-blue-400 font-bold mb-4">
-                            <span class="loader"></span> 정보를 불러오는 중...
-                        </div>
-                        <div id="ai-response" class="ai-content"></div>
-                    </div>
-                </div>
-                <button onclick="closeDetail()" class="w-full py-5 mt-6 bg-slate-700 text-white rounded-2xl font-bold hover:bg-slate-600 transition-colors">닫기</button>
-            </div>
-        </aside>
-
-        <div class="toggle-handle" id="toggle-handle">
-            <div class="toggle-btn" onclick="toggleSidebar()"><span id="toggle-icon">➔</span></div>
+        {/* 줌 컨트롤러 */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/90 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/10 shadow-2xl z-50">
+          <button onClick={() => handleZoom(0.8)} className="p-2 hover:bg-white/10 rounded-xl text-slate-300"><ZoomOut size={20}/></button>
+          <div className="h-4 w-[1px] bg-white/10 mx-1" />
+          <span className="text-[11px] font-mono w-10 text-center text-slate-400">{Math.round(transform.scale * 100)}%</span>
+          <div className="h-4 w-[1px] bg-white/10 mx-1" />
+          <button onClick={() => handleZoom(1.25)} className="p-2 hover:bg-white/10 rounded-xl text-slate-300"><ZoomIn size={20}/></button>
+          <div className="h-4 w-[1px] bg-white/10 mx-1" />
+          <button onClick={() => { setTransform({x:0, y:0, scale:0.8}); moveTo(stations["서울역"].x, stations["서울역"].y, 0.8); setSearchTerm(""); setHighlight(null); }} className="p-2 hover:bg-white/10 rounded-xl text-slate-300"><RotateCcw size={18}/></button>
         </div>
+
+        {/* 하단 역 정보 카드 */}
+        {selectedStation && (
+          <div className="absolute bottom-24 right-8 w-72 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-2xl z-50 animate-in slide-in-from-bottom-4 duration-300">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-2xl font-bold text-white leading-none">{selectedStation}</h2>
+              <button onClick={() => setSelectedStation(null)} className="p-1.5 hover:bg-white/10 rounded-full text-slate-400"><X size={18}/></button>
+            </div>
+            <div className="space-y-3 mb-6">
+              <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">경유 노선</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.values(lines).filter(l => l.stations.includes(selectedStation)).map(l => (
+                  <div key={l.name} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/5 rounded-lg border border-white/5">
+                    <div className="w-2 h-2 rounded-full" style={{backgroundColor: l.color}}/>
+                    <span className="text-[11px] font-medium">{l.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg active:scale-95">도착 정보 확인</button>
+          </div>
+        )}
+      </main>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+      `}</style>
     </div>
+  );
+};
 
-    <script>
-        // 내장된 역별 가이드 데이터 (네트워크 독립형)
-        const stationGuides = {
-            "서울역": {
-                desc: "대한민국 철도 교통의 중심지로, 1호선, 4호선, 경의중앙선, 공항철도, KTX가 만나는 초대형 거점입니다.",
-                spots: ["서울로 7017 (산책길)", "문화역서울 284", "롯데몰 광장"]
-            },
-            "강남": {
-                desc: "2호선과 신분당선이 만나는 서울 최고의 상업 지구입니다. 하루 이용객이 가장 많은 역 중 하나입니다.",
-                spots: ["강남역 지하상가", "강남대로 카페거리", "카카오프렌즈 플래그십스토어"]
-            },
-            "홍대입구": {
-                desc: "젊음과 예술의 거리로 유명하며, 공항철도와의 연계로 외국인 관광객이 가장 많이 찾는 지역입니다.",
-                spots: ["홍대 걷고싶은거리", "경의선 숲길", "연남동 맛집거리"]
-            },
-            "잠실": {
-                desc: "2호선과 8호선 환승역으로, 롯데월드타워와 석촌호수가 위치한 송파구의 핵심 교통 요지입니다.",
-                spots: ["롯데월드 타워 & 몰", "석촌호수", "송리단길"]
-            },
-            "고속터미널": {
-                desc: "3, 7, 9호선이 만나는 '트리플 역세권'으로 전국으로 연결되는 버스 터미널과 신세계백화점이 직결되어 있습니다.",
-                spots: ["고투몰 (지하쇼핑몰)", "반포 한강공원", "파미에스테이션"]
-            },
-            "여의도": {
-                desc: "정치, 금융의 중심지이자 여의도 한강공원과 IFC몰, 더현대 서울이 위치한 복합 문화 지구입니다.",
-                spots: ["더현대 서울", "IFC몰", "여의도 한강공원"]
-            },
-            "시청": {
-                desc: "1호선과 2호선이 교차하며 서울시청, 덕수궁 등 역사적 명소가 인접한 행정의 중심지입니다.",
-                spots: ["덕수궁 돌담길", "서울광장", "시립미술관"]
-            },
-            "종로3가": {
-                desc: "1, 3, 5호선이 만나는 거대 환승역으로 익선동 한옥거리와 귀금속 거리가 유명합니다.",
-                spots: ["익선동 한옥거리", "피맛골", "탑골공원"]
-            },
-            "수원": {
-                desc: "경기도 남부의 관문으로 1호선, 수인분당선, KTX가 정차하는 교통의 핵심입니다.",
-                spots: ["수원 화성행궁", "수원역 로데오거리", "방화수류정"]
-            }
-        };
-
-        const subwayData = {
-            lines: {
-                "1": { name: "1호선", color: "#0052A4", sequence: ["소요산", "의정부", "도봉산", "창동", "회기", "청량리", "동묘앞", "종로3가", "시청", "서울역", "남영", "용산", "노량진", "신도림", "구로", "부평", "인천"] },
-                "2": { name: "2호선", color: "#00A84D", sequence: ["시청", "을지로3가", "왕십리", "건대입구", "잠실", "종합운동장", "삼성", "강남", "교대", "사당", "신림", "신도림", "당산", "홍대입구", "신촌", "시청"] },
-                "3": { name: "3호선", color: "#EF7C1C", sequence: ["대화", "대곡", "연신내", "경복궁", "종로3가", "을지로3가", "약수", "옥수", "압구정", "고속터미널", "교대", "양재", "수서", "오금"] },
-                "4": { name: "4호선", color: "#00A5DE", sequence: ["진접", "불암산", "창동", "혜화", "서울역", "이촌", "동작", "사당", "금정", "안산", "오이도"] },
-                "5": { name: "5호선", color: "#996CAC", sequence: ["방화", "김포공항", "여의도", "공덕", "광화문", "종로3가", "왕십리", "군자", "천호", "강동", "하남검단산"] },
-                "6": { name: "6호선", color: "#CD7C2F", sequence: ["응암", "불광", "연신내", "디지털미디어시티", "합정", "공덕", "효창공원앞", "삼각지", "이태원", "약수", "동묘앞", "고려대", "석계", "태릉입구", "봉화산", "신내"] },
-                "7": { name: "7호선", color: "#747F00", sequence: ["장암", "도봉산", "노원", "태릉입구", "상봉", "건대입구", "강남구청", "논현", "고속터미널", "이수", "대림", "온수", "부평구청", "석남"] },
-                "8": { name: "8호선", color: "#E6186C", sequence: ["별내", "구리", "암사", "천호", "강동구청", "몽촌토성", "잠실", "석촌", "가락시장", "복정", "남한산성입구", "모란"] },
-                "9": { name: "9호선", color: "#BDB092", sequence: ["개화", "김포공항", "마곡나루", "당산", "여의도", "노량진", "동작", "고속터미널", "선정릉", "종합운동장", "석촌", "올림픽공원", "중앙보훈병원"] },
-                "K-J": { name: "경의중앙", color: "#77C4A3", sequence: ["문산", "일산", "대곡", "디지털미디어시티", "홍대입구", "공덕", "용산", "이촌", "옥수", "왕십리", "청량리", "회기", "상봉", "구리", "지평"] },
-                "S-B": { name: "수인분당", color: "#F5A200", sequence: ["청량리", "왕십리", "선정릉", "강남구청", "선릉", "도곡", "수서", "복정", "모란", "서현", "기흥", "수원", "고색", "오이도", "인천"] },
-                "S-X": { name: "신분당", color: "#D4003B", sequence: ["신사", "논현", "신논현", "강남", "양재", "판교", "정자", "광교"] }
-            },
-            stations: {
-                "소요산": { x: 3200, y: 500, lines: ["1"], terminal: true },
-                "서울역": { x: 2300, y: 2400, lines: ["1", "4"] },
-                "강남": { x: 3100, y: 3400, lines: ["2", "S-X"] },
-                "홍대입구": { x: 1800, y: 2400, lines: ["2", "K-J"] },
-                "불암산": { x: 3400, y: 1100, lines: ["4"] },
-                "종로3가": { x: 2500, y: 2100, lines: ["1", "3", "5"] },
-                "왕십리": { x: 3100, y: 2300, lines: ["2", "5", "K-J", "S-B"] },
-                "고속터미널": { x: 2900, y: 3200, lines: ["3", "7", "9"] },
-                "의정부": { x: 3000, y: 800, lines: ["1"] },
-                "도봉산": { x: 3000, y: 1100, lines: ["1", "7"] },
-                "창동": { x: 3000, y: 1300, lines: ["1", "4"] },
-                "노원": { x: 3200, y: 1300, lines: ["4", "7"] },
-                "회기": { x: 3200, y: 1900, lines: ["1", "K-J"] },
-                "청량리": { x: 3000, y: 2000, lines: ["1", "K-J", "S-B"] },
-                "동묘앞": { x: 2700, y: 2100, lines: ["1", "6"] },
-                "남영": { x: 2200, y: 2550, lines: ["1"] },
-                "용산": { x: 2100, y: 2700, lines: ["1", "K-J"] },
-                "노량진": { x: 2100, y: 3100, lines: ["1", "9"] },
-                "신도림": { x: 1800, y: 3300, lines: ["1", "2"] },
-                "구로": { x: 1600, y: 3300, lines: ["1"] },
-                "부평": { x: 1000, y: 3300, lines: ["1"] },
-                "인천": { x: 500, y: 3300, lines: ["1", "S-B"], terminal: true },
-                "을지로3가": { x: 2700, y: 2200, lines: ["2", "3"] },
-                "건대입구": { x: 3500, y: 2400, lines: ["2", "7"] },
-                "잠실": { x: 3800, y: 2800, lines: ["2", "8"] },
-                "종합운동장": { x: 3600, y: 3100, lines: ["2", "9"] },
-                "삼성": { x: 3400, y: 3300, lines: ["2"] },
-                "교대": { x: 2900, y: 3400, lines: ["2", "3"] },
-                "사당": { x: 2500, y: 3600, lines: ["2", "4"] },
-                "신림": { x: 2100, y: 3500, lines: ["2"] },
-                "당산": { x: 1800, y: 2800, lines: ["2", "9"] },
-                "신촌": { x: 2000, y: 2300, lines: ["2"] },
-                "대화": { x: 1000, y: 1500, lines: ["3"], terminal: true },
-                "대곡": { x: 1500, y: 1600, lines: ["3", "K-J"] },
-                "연신내": { x: 2100, y: 1800, lines: ["3", "6"] },
-                "경복궁": { x: 2300, y: 2000, lines: ["3"] },
-                "약수": { x: 2900, y: 2500, lines: ["3", "6"] },
-                "옥수": { x: 3000, y: 2800, lines: ["3", "K-J"] },
-                "압구정": { x: 3200, y: 3000, lines: ["3"] },
-                "양재": { x: 3100, y: 3700, lines: ["3", "S-X"] },
-                "수서": { x: 3700, y: 4000, lines: ["3", "S-B"] },
-                "오금": { x: 4100, y: 3700, lines: ["3", "5"], terminal: true },
-                "진접": { x: 3800, y: 800, lines: ["4"], terminal: true },
-                "이촌": { x: 2300, y: 3000, lines: ["4", "K-J"] },
-                "동작": { x: 2500, y: 3100, lines: ["4", "9"] },
-                "금정": { x: 1600, y: 4000, lines: ["1", "4"] },
-                "안산": { x: 1300, y: 5000, lines: ["4"] },
-                "오이도": { x: 1000, y: 5500, lines: ["4", "S-B"], terminal: true },
-                "방화": { x: 1000, y: 2200, lines: ["5"], terminal: true },
-                "김포공항": { x: 1200, y: 2400, lines: ["5", "9"] },
-                "여의도": { x: 1800, y: 3000, lines: ["5", "9"] },
-                "공덕": { x: 2000, y: 2600, lines: ["5", "6", "K-J"] },
-                "광화문": { x: 2400, y: 2000, lines: ["5"] },
-                "군자": { x: 3600, y: 2200, lines: ["5", "7"] },
-                "천호": { x: 3900, y: 2400, lines: ["5", "8"] },
-                "강동": { x: 4100, y: 2500, lines: ["5"] },
-                "하남검단산": { x: 4600, y: 2500, lines: ["5"], terminal: true },
-                "디지털미디어시티": { x: 1600, y: 2100, lines: ["6", "K-J"] },
-                "불광": { x: 2100, y: 1600, lines: ["3", "6"] },
-                "합정": { x: 1700, y: 2500, lines: ["2", "6"] },
-                "삼각지": { x: 2300, y: 2700, lines: ["4", "6"] },
-                "태릉입구": { x: 3500, y: 1500, lines: ["6", "7"] },
-                "상봉": { x: 3600, y: 1800, lines: ["7", "K-J"] },
-                "별내": { x: 4000, y: 1200, lines: ["8"], terminal: true },
-                "구리": { x: 3900, y: 1800, lines: ["8", "K-J"] },
-                "가락시장": { x: 4000, y: 3500, lines: ["3", "8"] },
-                "모란": { x: 4000, y: 4500, lines: ["8", "S-B"], terminal: true },
-                "선정릉": { x: 3300, y: 3200, lines: ["9", "S-B"] },
-                "석촌": { x: 3800, y: 3100, lines: ["8", "9"] },
-                "복정": { x: 4000, y: 3800, lines: ["8", "S-B"] },
-                "강남구청": { x: 3300, y: 2900, lines: ["7", "S-B"] },
-                "판교": { x: 3300, y: 4400, lines: ["S-X"] },
-                "정자": { x: 3300, y: 4700, lines: ["S-B", "S-X"] },
-                "지평": { x: 5000, y: 2500, lines: ["K-J"], terminal: true },
-                "문산": { x: 800, y: 1000, lines: ["K-J"], terminal: true }
-            }
-        };
-
-        const canvas = document.getElementById('canvas');
-        const viewport = document.getElementById('viewport');
-        const svgLayer = document.getElementById('svg-layer');
-        let scale = 0.45;
-        let posX = 0, posY = 0;
-        let isDragging = false;
-        let lastX, lastY;
-
-        function updateTransform() {
-            canvas.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-        }
-
-        function handleZoom(delta, clientX, clientY) {
-            const zoomFactor = delta > 0 ? 1.1 : 0.9;
-            const newScale = Math.max(0.1, Math.min(3, scale * zoomFactor));
-            const rect = viewport.getBoundingClientRect();
-            const mouseX = clientX - rect.left;
-            const mouseY = clientY - rect.top;
-            const canvasX = (mouseX - posX) / scale;
-            const canvasY = (mouseY - posY) / scale;
-            scale = newScale;
-            posX = mouseX - canvasX * scale;
-            posY = mouseY - canvasY * scale;
-            updateTransform();
-        }
-
-        // 로컬 데이터를 사용하여 AI 느낌의 응답 생성
-        function fetchStationInfoOffline(stationName) {
-            const loading = document.getElementById('loading-spinner');
-            const responseText = document.getElementById('ai-response');
-            
-            loading.classList.remove('hidden');
-            loading.classList.add('flex');
-            responseText.innerHTML = "";
-            
-            // 데이터 베이스에 있는지 확인
-            const data = stationGuides[stationName] || {
-                desc: `${stationName}역은 수도권 전철망의 주요 지점 중 하나로, 주변 주민들에게 편리한 교통편을 제공합니다.`,
-                spots: ["역 주변 상가", "인근 근린공원", "로컬 맛집"]
-            };
-
-            // 가짜 딜레이 (AI 느낌)
-            setTimeout(() => {
-                loading.classList.add('hidden');
-                loading.classList.remove('flex');
-                
-                let html = `<h3>🌟 역 특징</h3><p>${data.desc}</p>`;
-                html += `<h3>📍 가볼만한 곳</h3><ul>`;
-                data.spots.forEach(spot => {
-                    html += `<li>${spot}</li>`;
-                });
-                html += `</ul>`;
-                html += `<div class="mt-8 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[12px] text-blue-400">오프라인 모드로 정보를 표시 중입니다.</div>`;
-                
-                responseText.innerHTML = html;
-            }, 800);
-        }
-
-        function init() {
-            const legend = document.getElementById('legend');
-            legend.innerHTML = '';
-
-            Object.keys(subwayData.lines).forEach(id => {
-                const line = subwayData.lines[id];
-                const points = line.sequence
-                    .map(name => subwayData.stations[name] ? `${subwayData.stations[name].x},${subwayData.stations[name].y}` : null)
-                    .filter(p => p !== null);
-
-                if (points.length > 1) {
-                    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-                    poly.setAttribute("points", points.join(" "));
-                    poly.setAttribute("class", "subway-path");
-                    poly.setAttribute("stroke", line.color);
-                    poly.id = `path-${id}`;
-                    svgLayer.appendChild(poly);
-
-                    const item = document.createElement('div');
-                    item.className = 'flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity';
-                    item.innerHTML = `<span class="w-4 h-1.5 rounded-full" style="background:${line.color}"></span><span class="font-bold text-slate-300">${line.name}</span>`;
-                    item.onclick = () => highlightLine(id);
-                    legend.appendChild(item);
-                }
-            });
-
-            Object.keys(subwayData.stations).forEach(name => {
-                const st = subwayData.stations[name];
-                const div = document.createElement('div');
-                div.className = `station ${st.lines.length > 1 ? 'transfer' : ''} ${st.terminal ? 'terminal' : ''}`;
-                div.style.left = `${st.x}px`; div.style.top = `${st.y}px`;
-                div.innerHTML = `<div class="station-label">${name}</div>`;
-                div.onclick = (e) => { e.stopPropagation(); selectStation(name, st, div); };
-                canvas.appendChild(div);
-            });
-
-            setupSearch();
-            centerOnPoint(2500, 2500);
-        }
-
-        function highlightLine(id) {
-            document.querySelectorAll('.subway-path').forEach(p => p.style.opacity = '0.1');
-            const target = document.getElementById(`path-${id}`);
-            if(target) target.style.opacity = '1';
-            setTimeout(() => {
-                document.querySelectorAll('.subway-path').forEach(p => p.style.opacity = '0.8');
-            }, 2000);
-        }
-
-        function centerOnPoint(x, y) {
-            posX = (viewport.clientWidth / 2) - (x * scale);
-            posY = (viewport.clientHeight / 2) - (y * scale);
-            updateTransform();
-        }
-
-        function selectStation(name, data, el) {
-            document.querySelectorAll('.station').forEach(s => s.classList.remove('active'));
-            if(el) el.classList.add('active');
-
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar.classList.contains('collapsed')) toggleSidebar();
-
-            document.getElementById('welcome-view').classList.add('hidden');
-            document.getElementById('detail-view').classList.remove('hidden');
-            document.getElementById('st-name').innerText = name + (data.terminal ? '역 (종점)' : '역');
-            
-            const badges = document.getElementById('line-badges');
-            badges.innerHTML = '';
-            data.lines.forEach(l => {
-                const s = document.createElement('span');
-                s.className = 'line-badge';
-                s.style.background = subwayData.lines[l]?.color || '#444';
-                s.innerText = subwayData.lines[l]?.name || l;
-                badges.appendChild(s);
-            });
-
-            fetchStationInfoOffline(name);
-        }
-
-        function setupSearch() {
-            const input = document.getElementById('station-search');
-            const res = document.getElementById('search-results');
-            input.oninput = () => {
-                const q = input.value.trim().toLowerCase();
-                if(!q) { res.classList.add('hidden'); return; }
-                const found = Object.keys(subwayData.stations).filter(n => n.includes(q));
-                if(found.length) {
-                    res.innerHTML = found.map(n => `<div class="p-4 hover:bg-slate-700 cursor-pointer border-b border-slate-700 font-bold" onclick="selectFromSearch('${n}')">${n}</div>`).join('');
-                    res.classList.remove('hidden');
-                } else res.classList.add('hidden');
-            };
-        }
-
-        window.selectFromSearch = (name) => {
-            const st = subwayData.stations[name];
-            document.getElementById('search-results').classList.add('hidden');
-            centerOnPoint(st.x, st.y);
-            // 라벨을 통해 실제 DOM 요소를 찾아 강조 표시
-            const stations = Array.from(document.querySelectorAll('.station'));
-            const target = stations.find(s => s.innerText.trim() === name);
-            selectStation(name, st, target);
-        };
-
-        function closeDetail() {
-            document.getElementById('detail-view').classList.add('hidden');
-            document.getElementById('welcome-view').classList.remove('hidden');
-            document.querySelectorAll('.station').forEach(s => s.classList.remove('active'));
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const icon = document.getElementById('toggle-icon');
-            sidebar.classList.toggle('collapsed');
-            icon.innerText = sidebar.classList.contains('collapsed') ? '◀' : '➔';
-        }
-
-        // 드래그 및 줌 이벤트
-        viewport.onwheel = (e) => { e.preventDefault(); handleZoom(e.deltaY < 0 ? 1 : -1, e.clientX, e.clientY); };
-        viewport.onmousedown = (e) => { if(e.button === 0) { isDragging = true; lastX = e.clientX; lastY = e.clientY; viewport.style.cursor = 'grabbing'; } };
-        window.onmousemove = (e) => { if(isDragging) { posX += e.clientX - lastX; posY += e.clientY - lastY; lastX = e.clientX; lastY = e.clientY; updateTransform(); } };
-        window.onmouseup = () => { isDragging = false; viewport.style.cursor = 'grab'; };
-
-        // 터치 지원
-        viewport.ontouchstart = (e) => { if(e.touches.length === 1) { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; } };
-        viewport.ontouchmove = (e) => { 
-            if(isDragging && e.touches.length === 1) { 
-                posX += e.touches[0].clientX - lastX; 
-                posY += e.touches[0].clientY - lastY; 
-                lastX = e.touches[0].clientX; 
-                lastY = e.touches[0].clientY; 
-                updateTransform(); 
-            } 
-        };
-        viewport.ontouchend = () => { isDragging = false; };
-
-        document.getElementById('zoom-in').onclick = () => handleZoom(1, viewport.clientWidth/2, viewport.clientHeight/2);
-        document.getElementById('zoom-out').onclick = () => handleZoom(-1, viewport.clientWidth/2, viewport.clientHeight/2);
-        document.getElementById('zoom-reset').onclick = () => { scale = 0.45; centerOnPoint(2500, 2500); };
-
-        window.onload = init;
-    </script>
-</body>
-</html>
+export default App;
