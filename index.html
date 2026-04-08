@@ -1,10 +1,12 @@
+```react
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ZoomIn, ZoomOut, RotateCcw, Search, Navigation, Menu, ChevronLeft, X } from 'lucide-react';
 
 const App = () => {
-  // --- 데이터 섹션 (모든 경전철 및 주요 노선 포함) ---
+  // --- 데이터 섹션 (기존과 동일) ---
   const lines = {
     "L1": { name: "1호선", color: "#0052A4", stations: ["연천", "동두천", "의정부", "회룡", "도봉산", "창동", "광운대", "석계", "청량리", "신설동", "동묘앞", "종로3가", "시청", "서울역", "남영", "용산", "노량진", "신길", "신도림", "구로", "부천", "부평", "인천"] },
+    "L1B": { name: "1호선(경부)", color: "#0052A4", isBranch: true, stations: ["구로", "가산디지털단지", "금정", "수원", "고색", "오이도", "신창"] },
     "L2": { name: "2호선", color: "#00A84D", stations: ["시청", "을지로3가", "동대문역사문화공원", "신당", "왕십리", "성수", "건대입구", "잠실", "종합운동장", "삼성", "선릉", "강남", "교대", "서초", "사당", "신림", "대림", "신도림", "당산", "합정", "홍대입구", "신촌", "이대", "충정로", "시청"] },
     "L3": { name: "3호선", color: "#EF7C1C", stations: ["대화", "대곡", "연신내", "불광", "독립문", "경복궁", "종로3가", "을지로3가", "충무로", "약수", "옥수", "압구정", "신사", "고속터미널", "교대", "남부터미널", "양재", "수서", "가락시장", "오금"] },
     "L4": { name: "4호선", color: "#00A5DE", stations: ["진접", "불암산", "노원", "창동", "성신여대입구", "혜화", "동대문", "동대문역사문화공원", "충무로", "명동", "서울역", "숙대입구", "삼각지", "이촌", "동작", "이수", "사당", "금정", "안산", "오이도"] },
@@ -21,22 +23,7 @@ const App = () => {
   };
 
   const stationsData = {
-    "연천": {x: 1400, y: 100}, "동두천": {x: 1400, y: 200}, "의정부": {x: 1400, y: 300}, "회룡": {x: 1400, y: 400}, 
-    "도봉산": {x: 1400, y: 500}, "창동": {x: 1400, y: 600}, "광운대": {x: 1400, y: 700}, "석계": {x: 1400, y: 800}, "청량리": {x: 1400, y: 1000}, "신설동": {x: 1200, y: 1100}, "동묘앞": {x: 1100, y: 1100}, "종로3가": {x: 1000, y: 1200}, "시청": {x: 900, y: 1300}, "서울역": {x: 900, y: 1400}, "남영": {x: 900, y: 1450}, "용산": {x: 900, y: 1550}, "노량진": {x: 800, y: 1650}, "신길": {x: 700, y: 1700}, "신도림": {x: 600, y: 1800}, "구로": {x: 500, y: 1900},
-    "부천": {x: 350, y: 1900}, "부평": {x: 200, y: 1900}, "인천": {x: 100, y: 1900},
-    "을지로3가": {x: 1200, y: 1300}, "동대문역사문화공원": {x: 1300, y: 1300}, "신당": {x: 1400, y: 1300}, "왕십리": {x: 1500, y: 1300}, "성수": {x: 1600, y: 1400}, "건대입구": {x: 1600, y: 1500}, "잠실": {x: 1700, y: 1600}, "종합운동장": {x: 1600, y: 1700}, "삼성": {x: 1500, y: 1700}, "선릉": {x: 1400, y: 1700}, "강남": {x: 1300, y: 1700}, "교대": {x: 1200, y: 1700}, "서초": {x: 1100, y: 1700}, "사당": {x: 1000, y: 1900}, "신림": {x: 800, y: 1900}, "대림": {x: 600, y: 1800}, "당산": {x: 700, y: 1600}, "합정": {x: 700, y: 1500}, "홍대입구": {x: 800, y: 1400}, "신촌": {x: 900, y: 1350}, "이대": {x: 950, y: 1350}, "충정로": {x: 950, y: 1300},
-    "대화": {x: 400, y: 600}, "대곡": {x: 600, y: 800}, "연신내": {x: 900, y: 900}, "불광": {x: 950, y: 950}, "독립문": {x: 950, y: 1100}, "경복궁": {x: 1050, y: 1100}, "충무로": {x: 1200, y: 1400}, "약수": {x: 1300, y: 1450}, "압구정": {x: 1300, y: 1550}, "고속터미널": {x: 1200, y: 1650}, "남부터미널": {x: 1200, y: 1750}, "양재": {x: 1300, y: 1850}, "수서": {x: 1600, y: 1850}, "가락시장": {x: 1700, y: 1850}, "오금": {x: 1800, y: 1850},
-    "진접": {x: 1800, y: 500}, "불암산": {x: 1700, y: 600}, "노원": {x: 1600, y: 600}, "성신여대입구": {x: 1250, y: 1000}, "혜화": {x: 1250, y: 1100}, "동대문": {x: 1300, y: 1200}, "명동": {x: 1100, y: 1400}, "숙대입구": {x: 950, y: 1450}, "삼각지": {x: 1000, y: 1550}, "이촌": {x: 1100, y: 1650}, "동작": {x: 1100, y: 1750}, "이수": {x: 1000, y: 1800}, "안산": {x: 400, y: 2300},
-    "방화": {x: 300, y: 1300}, "김포공항": {x: 400, y: 1400}, "마곡": {x: 500, y: 1400}, "여의도": {x: 800, y: 1600}, "공덕": {x: 900, y: 1500}, "광화문": {x: 1000, y: 1150}, "을지로4가": {x: 1250, y: 1250}, "청구": {x: 1400, y: 1350}, "군자": {x: 1600, y: 1300}, "천호": {x: 1800, y: 1300}, "강동": {x: 1900, y: 1300}, "하남검단산": {x: 2100, y: 1300},
-    "응암": {x: 800, y: 1000}, "디지털미디어시티": {x: 700, y: 1200}, "효창공원앞": {x: 950, y: 1500}, "이태원": {x: 1100, y: 1450}, "보문": {x: 1350, y: 1100}, "안암": {x: 1400, y: 1050}, "고려대": {x: 1450, y: 1000}, "태릉입구": {x: 1600, y: 800}, "봉화산": {x: 1700, y: 800}, "신내": {x: 1800, y: 800},
-    "장암": {x: 1600, y: 400}, "상봉": {x: 1600, y: 1000}, "강남구청": {x: 1400, y: 1600}, "논현": {x: 1300, y: 1600}, "온수": {x: 400, y: 1850}, "부평구청": {x: 200, y: 1850}, "석남": {x: 100, y: 1850},
-    "별내": {x: 1800, y: 1100}, "구리": {x: 1800, y: 1200}, "몽촌토성": {x: 1750, y: 1550}, "석촌": {x: 1700, y: 1700}, "복정": {x: 1700, y: 1950}, "모란": {x: 1700, y: 2050},
-    "마곡나루": {x: 500, y: 1500}, "샛강": {x: 800, y: 1750}, "신논현": {x: 1300, y: 1650}, "선정릉": {x: 1400, y: 1650}, "올림픽공원": {x: 1900, y: 1700}, "중앙보훈병원": {x: 2000, y: 1700},
-    "정릉": {x: 1250, y: 950},
-    "발곡": {x: 1450, y: 300}, "범골": {x: 1350, y: 450}, "의정부시청": {x: 1300, y: 450}, "흥선": {x: 1250, y: 450}, "중앙": {x: 1250, y: 400}, "동오": {x: 1250, y: 350}, "새말": {x: 1250, y: 300}, "탑석": {x: 1250, y: 200},
-    "양촌": {x: 100, y: 1400}, "구래": {x: 150, y: 1400}, "마산": {x: 200, y: 1400}, "장기": {x: 250, y: 1400}, "운양": {x: 300, y: 1400}, "걸포북변": {x: 350, y: 1400}, "사우": {x: 400, y: 1450}, "풍무": {x: 450, y: 1450}, "고촌": {x: 400, y: 1350},
-    "대방": {x: 850, y: 1650}, "서울지방병무청": {x: 850, y: 1750}, "보라매": {x: 850, y: 1850}, "보라매공원": {x: 800, y: 1850}, "보라매병원": {x: 750, y: 1850}, "당곡": {x: 750, y: 1950}, "서원": {x: 800, y: 2050}, "서울대벤처타운": {x: 850, y: 2150}, "관악산": {x: 900, y: 2200},
-    "기흥": {x: 1300, y: 2000}, "강남대": {x: 1350, y: 2000}, "지석": {x: 1400, y: 2000}, "어정": {x: 1450, y: 2000}, "동백": {x: 1500, y: 2050}, "초당": {x: 1550, y: 2100}, "삼가": {x: 1600, y: 2150}, "시청·용인대": {x: 1650, y: 2200}, "명지대": {x: 1700, y: 2200}, "김량장": {x: 1750, y: 2200}, "운동장·송담대": {x: 1800, y: 2200}, "고진": {x: 1850, y: 2200}, "보평": {x: 1900, y: 2200}, "둔전": {x: 1950, y: 2200}, "전대·에버랜드": {x: 2000, y: 2200}
+    "연천": {x: 1400, y: 100}, "동두천": {x: 1400, y: 200}, "의정부": {x: 1400, y: 300}, "회룡": {x: 1400, y: 400}, "발곡": {x: 1250, y: 400}, "범골": {x: 1550, y: 400}, "의정부시청": {x: 1650, y: 400}, "흥선": {x: 1750, y: 400}, "중앙": {x: 1850, y: 400}, "동오": {x: 1950, y: 400}, "새말": {x: 2050, y: 400}, "탑석": {x: 2150, y: 400}, "도봉산": {x: 1400, y: 500}, "창동": {x: 1400, y: 600}, "광운대": {x: 1400, y: 700}, "석계": {x: 1400, y: 800}, "청량리": {x: 1400, y: 1000}, "신설동": {x: 1200, y: 1100}, "동묘앞": {x: 1100, y: 1100}, "종로3가": {x: 1000, y: 1200}, "시청": {x: 900, y: 1300}, "서울역": {x: 900, y: 1400}, "남영": {x: 900, y: 1450}, "용산": {x: 900, y: 1550}, "노량진": {x: 800, y: 1650}, "신길": {x: 700, y: 1700}, "신도림": {x: 600, y: 1800}, "구로": {x: 500, y: 1900}, "부천": {x: 350, y: 1900}, "부평": {x: 200, y: 1900}, "인천": {x: 100, y: 1900}, "가산디지털단지": {x: 500, y: 2000}, "금정": {x: 500, y: 2200}, "수원": {x: 600, y: 2500}, "고색": {x: 500, y: 2500}, "오이도": {x: 300, y: 2500}, "신창": {x: 600, y: 2800}, "을지로3가": {x: 1200, y: 1300}, "동대문역사문화공원": {x: 1300, y: 1300}, "신당": {x: 1400, y: 1300}, "왕십리": {x: 1500, y: 1300}, "성수": {x: 1600, y: 1400}, "건대입구": {x: 1600, y: 1500}, "잠실": {x: 1700, y: 1600}, "종합운동장": {x: 1600, y: 1700}, "삼성": {x: 1500, y: 1700}, "선릉": {x: 1400, y: 1700}, "강남": {x: 1300, y: 1700}, "교대": {x: 1200, y: 1700}, "서초": {x: 1100, y: 1700}, "사당": {x: 1000, y: 1900}, "신림": {x: 800, y: 1900}, "대림": {x: 600, y: 1800}, "당산": {x: 700, y: 1600}, "합정": {x: 700, y: 1500}, "홍대입구": {x: 800, y: 1400}, "신촌": {x: 900, y: 1350}, "이대": {x: 950, y: 1350}, "충정로": {x: 950, y: 1300}, "대화": {x: 400, y: 600}, "대곡": {x: 600, y: 800}, "연신내": {x: 900, y: 900}, "불광": {x: 950, y: 950}, "독립문": {x: 950, y: 1100}, "경복궁": {x: 1050, y: 1100}, "충무로": {x: 1200, y: 1400}, "약수": {x: 1300, y: 1450}, "압구정": {x: 1300, y: 1550}, "고속터미널": {x: 1200, y: 1650}, "남부터미널": {x: 1200, y: 1750}, "양재": {x: 1300, y: 1850}, "수서": {x: 1600, y: 1850}, "가락시장": {x: 1700, y: 1850}, "오금": {x: 1800, y: 1850}, "진접": {x: 1800, y: 500}, "불암산": {x: 1700, y: 600}, "노원": {x: 1600, y: 600}, "성신여대입구": {x: 1250, y: 1000}, "혜화": {x: 1250, y: 1100}, "동대문": {x: 1300, y: 1200}, "명동": {x: 1100, y: 1400}, "숙대입구": {x: 950, y: 1450}, "삼각지": {x: 1000, y: 1550}, "이촌": {x: 1100, y: 1650}, "동작": {x: 1100, y: 1750}, "이수": {x: 1000, y: 1800}, "안산": {x: 400, y: 2300}, "방화": {x: 300, y: 1300}, "김포공항": {x: 400, y: 1400}, "마곡": {x: 500, y: 1400}, "여의도": {x: 800, y: 1600}, "공덕": {x: 900, y: 1500}, "광화문": {x: 1000, y: 1150}, "을지로4가": {x: 1250, y: 1250}, "청구": {x: 1400, y: 1350}, "군자": {x: 1600, y: 1300}, "천호": {x: 1800, y: 1300}, "강동": {x: 1900, y: 1300}, "하남검단산": {x: 2100, y: 1300}, "응암": {x: 800, y: 1000}, "디지털미디어시티": {x: 700, y: 1200}, "효창공원앞": {x: 950, y: 1500}, "이태원": {x: 1100, y: 1450}, "보문": {x: 1350, y: 1100}, "안암": {x: 1400, y: 1050}, "고려대": {x: 1450, y: 1000}, "태릉입구": {x: 1600, y: 800}, "봉화산": {x: 1700, y: 800}, "신내": {x: 1800, y: 800}, "장암": {x: 1600, y: 400}, "상봉": {x: 1600, y: 1000}, "강남구청": {x: 1400, y: 1600}, "논현": {x: 1300, y: 1600}, "온수": {x: 400, y: 1850}, "부평구청": {x: 200, y: 1850}, "석남": {x: 100, y: 1850}, "별내": {x: 1800, y: 1100}, "구리": {x: 1800, y: 1200}, "몽촌토성": {x: 1750, y: 1550}, "석촌": {x: 1700, y: 1700}, "복정": {x: 1700, y: 1950}, "모란": {x: 1700, y: 2050}, "마곡나루": {x: 500, y: 1500}, "샛강": {x: 800, y: 1750}, "신논현": {x: 1300, y: 1650}, "선정릉": {x: 1400, y: 1650}, "올림픽공원": {x: 1900, y: 1700}, "중앙보훈병원": {x: 2000, y: 1700}, "양촌": {x: 50, y: 1400}, "구래": {x: 100, y: 1400}, "마산": {x: 150, y: 1400}, "장기": {x: 200, y: 1400}, "운양": {x: 250, y: 1400}, "걸포북변": {x: 300, y: 1400}, "사우": {x: 350, y: 1400}, "풍무": {x: 350, y: 1450}, "고촌": {x: 350, y: 1500}, "대방": {x: 800, y: 1700}, "서울지방병무청": {x: 800, y: 1750}, "보라매": {x: 800, y: 1800}, "보라매공원": {x: 800, y: 1850}, "보라매병원": {x: 850, y: 1850}, "당곡": {x: 900, y: 1850}, "서원": {x: 800, y: 1950}, "서울대벤처타운": {x: 800, y: 2000}, "관악산": {x: 800, y: 2100}, "기흥": {x: 1300, y: 1950}, "강남대": {x: 1400, y: 1950}, "지석": {x: 1500, y: 1950}, "어정": {x: 1600, y: 1950}, "동백": {x: 1650, y: 2000}, "초당": {x: 1650, y: 2050}, "삼가": {x: 1650, y: 2100}, "시청·용인대": {x: 1750, y: 2100}, "명지대": {x: 1850, y: 2100}, "김량장": {x: 1950, y: 2100}, "운동장·송담대": {x: 2050, y: 2100}, "고진": {x: 2100, y: 2150}, "보평": {x: 2100, y: 2200}, "둔전": {x: 2100, y: 2250}, "전대·에버랜드": {x: 2100, y: 2350}, "북한산우이": {x: 1250, y: 500}, "솔밭공원": {x: 1250, y: 550}, "4.19민주묘지": {x: 1250, y: 600}, "가오리": {x: 1250, y: 650}, "화계": {x: 1250, y: 700}, "삼양": {x: 1250, y: 750}, "삼양사거리": {x: 1250, y: 800}, "솔샘": {x: 1250, y: 850}, "북한산보국문": {x: 1250, y: 900}, "정릉": {x: 1250, y: 950}
   };
 
   // --- 상태 관리 ---
@@ -44,10 +31,14 @@ const App = () => {
   const [selectedStation, setSelectedStation] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [highlightLine, setHighlightLine] = useState(null);
+  const [highlight, setHighlight] = useState(null);
   const mapRef = useRef(null);
+  
+  // 드래그 상태 관리
+  const isDragging = useRef(false);
+  const lastMousePos = useRef({ x: 0, y: 0 });
 
-  // --- 비즈니스 로직 ---
+  // --- 헬퍼 함수 ---
   const moveTo = (x, y, customScale = null) => {
     if (!mapRef.current) return;
     const currentScale = customScale || transform.scale;
@@ -61,7 +52,7 @@ const App = () => {
 
   const handleZoom = (factor) => {
     setTransform(prev => {
-      const newScale = Math.min(4.0, Math.max(0.1, prev.scale * factor));
+      const newScale = Math.min(3.0, Math.max(0.2, prev.scale * factor));
       const { clientWidth, clientHeight } = mapRef.current;
       const centerX = clientWidth / 2;
       const centerY = clientHeight / 2;
@@ -73,37 +64,256 @@ const App = () => {
     });
   };
 
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if(stationsData["서울역"]) moveTo(stationsData["서울역"].x, stationsData["서울역"].y);
-    }, 100);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    if (searchTerm.length >= 2) {
-      const found = Object.keys(stationsData).find(name => name === searchTerm || name.includes(searchTerm));
-      if (found) {
-        setSelectedStation(found);
-        moveTo(stationsData[found].x, stationsData[found].y, 1.2);
-      }
-    }
-  }, [searchTerm]);
-
-  const stationMembership = useMemo(() => {
+  // 노선 데이터 인덱싱
+  const stationLineMap = useMemo(() => {
     const map = {};
     Object.entries(lines).forEach(([id, line]) => {
       line.stations.forEach(s => {
         if (!map[s]) map[s] = [];
-        map[s].push({ id, color: line.color, name: line.name });
+        map[s].push({ name: line.name, color: line.color });
       });
     });
     return map;
   }, []);
 
+  // 드래그 이벤트 핸들러
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return; // 왼쪽 클릭만 허용
+    isDragging.current = true;
+    lastMousePos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    
+    const deltaX = e.clientX - lastMousePos.current.x;
+    const deltaY = e.clientY - lastMousePos.current.y;
+    
+    setTransform(prev => ({
+      ...prev,
+      x: prev.x + deltaX,
+      y: prev.y + deltaY
+    }));
+    
+    lastMousePos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
+  // 터치 지원
+  const handleTouchStart = (e) => {
+    if (e.touches.length !== 1) return;
+    isDragging.current = true;
+    lastMousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging.current || e.touches.length !== 1) return;
+    
+    const deltaX = e.touches[0].clientX - lastMousePos.current.x;
+    const deltaY = e.touches[0].clientY - lastMousePos.current.y;
+    
+    setTransform(prev => ({
+      ...prev,
+      x: prev.x + deltaX,
+      y: prev.y + deltaY
+    }));
+    
+    lastMousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+
+  useEffect(() => {
+    if (searchTerm.length >= 1) {
+      const found = Object.keys(stationsData).find(name => name === searchTerm);
+      if (found) {
+        moveTo(stationsData[found].x, stationsData[found].y, 1.2);
+        setSelectedStation(found);
+      }
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    // 초기 렌더링 시 중앙 정렬
+    const t = setTimeout(() => {
+      moveTo(stationsData["서울역"].x, stationsData["서울역"].y, 0.8);
+    }, 100);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
-    <div className="flex h-screen w-screen bg-[#0b0f19] text-white overflow-hidden select-none font-sans relative">
+    <div className="flex h-screen w-screen bg-[#0b0f19] text-white overflow-hidden font-sans relative select-none">
       
+      {/* 사이드바 */}
+      <aside 
+        className={`fixed left-0 top-0 z-[100] h-full w-80 bg-[#1e293b] shadow-2xl transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="p-6 h-full flex flex-col">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-600 rounded-lg"><Navigation size={20}/></div>
+              <h1 className="text-xl font-bold tracking-tight">서울 지하철</h1>
+            </div>
+            <button 
+              onClick={() => setIsMenuOpen(false)} 
+              className="p-2 hover:bg-white/10 rounded-full text-slate-400"
+            >
+              <ChevronLeft size={24}/>
+            </button>
+          </div>
+
+          <div className="relative mb-8">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16}/>
+            <input 
+              className="w-full bg-slate-900 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              placeholder="역 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-4 tracking-widest">노선별 필터</p>
+            {Object.entries(lines).filter(([_, l]) => !l.isBranch).map(([id, line]) => (
+              <button 
+                key={id}
+                onClick={() => setHighlight(highlight === line.name ? null : line.name)}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${highlight === line.name ? 'bg-indigo-600/20 border-indigo-500/50 text-white' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}
+              >
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: line.color}} />
+                <span className="text-xs font-semibold">{line.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* 메인 맵 컨테이너 */}
+      <main 
+        ref={mapRef} 
+        className="relative flex-1 h-full bg-[#0b1120] overflow-hidden cursor-grab active:cursor-grabbing touch-none"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleMouseUp}
+      >
+        {!isMenuOpen && (
+          <button 
+            onClick={() => setIsMenuOpen(true)} 
+            className="absolute top-6 left-6 z-50 p-4 bg-indigo-600 rounded-2xl shadow-xl hover:bg-indigo-500 transition-all active:scale-95"
+          >
+            <Menu size={20}/>
+          </button>
+        )}
+
+        {/* 지도 콘텐츠 레이어 */}
+        <div 
+          className="absolute inset-0 origin-top-left will-change-transform"
+          style={{ 
+            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+          }}
+        >
+          {/* SVG 노선 그리기 */}
+          <svg width="4000" height="4000" className="absolute top-0 left-0 pointer-events-none overflow-visible">
+            {Object.entries(lines).map(([id, line]) => {
+              const pts = line.stations.map(s => stationsData[s]).filter(Boolean).map(p => `${p.x},${p.y}`).join(' ');
+              const isDimmed = highlight && highlight !== line.name;
+              return (
+                <polyline 
+                  key={`line-${id}`} 
+                  points={pts} 
+                  stroke={line.color} 
+                  strokeWidth="12" 
+                  fill="none" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  style={{ opacity: isDimmed ? 0.08 : 0.85, transition: 'opacity 0.3s' }}
+                />
+              );
+            })}
+          </svg>
+
+          {/* 역 아이콘 및 이름 레이어 */}
+          {Object.entries(stationsData).map(([name, pos]) => {
+            const myLines = stationLineMap[name] || [];
+            const isTr = myLines.length > 1;
+            const isSel = selectedStation === name;
+            const isMatched = (!searchTerm || name.includes(searchTerm)) && (!highlight || myLines.some(l => l.name === highlight));
+            const opacity = isMatched ? 1 : 0.15;
+
+            return (
+              <div 
+                key={`station-${name}`}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                style={{ left: pos.x, top: pos.y, opacity, transition: 'opacity 0.3s', zIndex: isSel ? 60 : (isTr ? 40 : 20) }}
+              >
+                <div 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    setSelectedStation(name); 
+                  }}
+                  className={`w-5 h-5 rounded-full border-2 bg-white cursor-pointer transition-all ${isSel ? 'scale-150 ring-4 ring-indigo-500/40 border-indigo-500' : 'hover:scale-125 border-slate-700'}`}
+                />
+                <span className={`absolute top-6 left-1/2 -translate-x-1/2 text-[11px] font-bold whitespace-nowrap px-1 pointer-events-none ${isSel ? 'text-indigo-400 text-sm' : 'text-white'}`} style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                  {name}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* UI 컨트롤 */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 shadow-2xl z-50">
+          <button onClick={(e) => { e.stopPropagation(); handleZoom(0.8); }} className="p-2 hover:bg-white/10 rounded-xl text-slate-300 active:scale-90 transition-transform"><ZoomOut size={18}/></button>
+          <span className="text-xs font-mono w-14 text-center text-indigo-400 font-bold">{Math.round(transform.scale * 100)}%</span>
+          <button onClick={(e) => { e.stopPropagation(); handleZoom(1.25); }} className="p-2 hover:bg-white/10 rounded-xl text-slate-300 active:scale-90 transition-transform"><ZoomIn size={18}/></button>
+          <div className="w-[1px] h-4 bg-white/20 mx-1" />
+          <button onClick={(e) => { e.stopPropagation(); setTransform({x:0, y:0, scale:0.8}); moveTo(stationsData["서울역"].x, stationsData["서울역"].y, 0.8); setSearchTerm(""); setHighlight(null); setSelectedStation(null); }} className="p-2 hover:bg-white/10 rounded-xl text-slate-300"><RotateCcw size={16}/></button>
+        </div>
+
+        {/* 상세 정보 카드 */}
+        {selectedStation && (
+          <div className="absolute bottom-24 right-8 w-72 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl z-50 animate-in">
+            <div className="flex justify-between items-start mb-5">
+              <h2 className="text-2xl font-black tracking-tight">{selectedStation}</h2>
+              <button onClick={() => setSelectedStation(null)} className="p-1.5 hover:bg-white/10 rounded-full text-slate-400 transition-colors"><X size={20}/></button>
+            </div>
+            <div className="space-y-5">
+              <div>
+                <p className="text-[10px] text-slate-500 font-black mb-3 tracking-widest uppercase">경유 노선</p>
+                <div className="flex flex-wrap gap-2">
+                  {stationLineMap[selectedStation].map(l => (
+                    <div key={l.name} className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: l.color}}/>
+                      <span className="text-xs font-bold">{l.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-black tracking-widest uppercase shadow-xl shadow-indigo-600/20 active:scale-[0.98] transition-all">도착 정보 실시간 확인</button>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        @keyframes fadeInSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-in { animation: fadeInSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        body { -webkit-user-select: none; user-select: none; }
+      `}</style>
+    </div>
+  );
+};
+
+export default App;
+
+```
       {/* 사이드바 - transform 기반으로 수정하여 레이아웃 방해 최소화 */}
       <aside 
         className={`fixed left-0 top-0 z-[60] h-full bg-[#1e293b] shadow-2xl transition-transform duration-300 ease-in-out w-80 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
