@@ -143,7 +143,8 @@
 
         const stationsData = {
             "연천": {x: 1500, y: 100}, "동두천": {x: 1500, y: 200}, "의정부": {x: 1500, y: 350}, "회룡": {x: 1500, y: 500}, 
-            "도봉산": {x: 1500, y: 800}, "장암": {x: 1650, y: 650},
+            "도봉산": {x: 1500, y: 800}, 
+            "장암": {x: 1650, y: 950}, // 도봉산역 밑(남동측)으로 이동
             "창동": {x: 1500, y: 1000}, "석계": {x: 1500, y: 1250}, "신설동": {x: 1250, y: 1550}, "회기": {x: 1500, y: 1450}, "청량리": {x: 1500, y: 1650},
             "종로3가": {x: 1100, y: 1650}, "시청": {x: 900, y: 1750}, "서울역": {x: 900, y: 1950}, "남영": {x: 900, y: 2100},
             "용산": {x: 900, y: 2250}, "노량진": {x: 900, y: 2450}, "신길": {x: 700, y: 2450}, "신도림": {x: 500, y: 2450},
@@ -186,7 +187,7 @@
         ];
 
         let state = {
-            transform: { x: -800, y: -1500, scale: 0.65 },
+            transform: { x: -800, y: -500, scale: 0.65 },
             isDragging: false,
             lastPos: { x: 0, y: 0 },
             selectedStation: null,
@@ -353,7 +354,7 @@
         }
 
         function resetView() {
-            state.transform = { x: -800, y: -1500, scale: 0.65 };
+            state.transform = { x: -800, y: -500, scale: 0.65 };
             state.highlightLine = null;
             state.selectedStation = null;
             renderMap();
