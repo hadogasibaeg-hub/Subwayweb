@@ -1,501 +1,443 @@
-```react
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Search, Navigation, Menu, ChevronLeft, X } from 'lucide-react';
-
-const App = () => {
-  // --- 데이터 섹션 (기존과 동일) ---
-  const lines = {
-    "L1": { name: "1호선", color: "#0052A4", stations: ["연천", "동두천", "의정부", "회룡", "도봉산", "창동", "광운대", "석계", "청량리", "신설동", "동묘앞", "종로3가", "시청", "서울역", "남영", "용산", "노량진", "신길", "신도림", "구로", "부천", "부평", "인천"] },
-    "L1B": { name: "1호선(경부)", color: "#0052A4", isBranch: true, stations: ["구로", "가산디지털단지", "금정", "수원", "고색", "오이도", "신창"] },
-    "L2": { name: "2호선", color: "#00A84D", stations: ["시청", "을지로3가", "동대문역사문화공원", "신당", "왕십리", "성수", "건대입구", "잠실", "종합운동장", "삼성", "선릉", "강남", "교대", "서초", "사당", "신림", "대림", "신도림", "당산", "합정", "홍대입구", "신촌", "이대", "충정로", "시청"] },
-    "L3": { name: "3호선", color: "#EF7C1C", stations: ["대화", "대곡", "연신내", "불광", "독립문", "경복궁", "종로3가", "을지로3가", "충무로", "약수", "옥수", "압구정", "신사", "고속터미널", "교대", "남부터미널", "양재", "수서", "가락시장", "오금"] },
-    "L4": { name: "4호선", color: "#00A5DE", stations: ["진접", "불암산", "노원", "창동", "성신여대입구", "혜화", "동대문", "동대문역사문화공원", "충무로", "명동", "서울역", "숙대입구", "삼각지", "이촌", "동작", "이수", "사당", "금정", "안산", "오이도"] },
-    "L5": { name: "5호선", color: "#996CAC", stations: ["방화", "김포공항", "마곡", "여의도", "신길", "공덕", "충정로", "광화문", "종로3가", "을지로4가", "동대문역사문화공원", "청구", "왕십리", "군자", "천호", "강동", "하남검단산"] },
-    "L6": { name: "6호선", color: "#CD7C2F", stations: ["응암", "디지털미디어시티", "합정", "공덕", "효창공원앞", "삼각지", "이태원", "약수", "청구", "신당", "동묘앞", "보문", "안암", "고려대", "석계", "태릉입구", "봉화산", "신내"] },
-    "L7": { name: "7호선", color: "#747F00", stations: ["장암", "도봉산", "노원", "태릉입구", "상봉", "군자", "건대입구", "강남구청", "논현", "고속터미널", "이수", "대림", "가산디지털단지", "온수", "부평구청", "석남"] },
-    "L8": { name: "8호선", color: "#E6186C", stations: ["별내", "구리", "천호", "몽촌토성", "잠실", "석촌", "가락시장", "복정", "모란"] },
-    "L9": { name: "9호선", color: "#BDB092", stations: ["김포공항", "마곡나루", "당산", "여의도", "샛강", "노량진", "동작", "고속터미널", "신논현", "선정릉", "종합운동장", "석촌", "올림픽공원", "중앙보훈병원"] },
-    "UI": { name: "우이신설선", color: "#B0AD00", stations: ["북한산우이", "솔밭공원", "4.19민주묘지", "가오리", "화계", "삼양", "삼양사거리", "솔샘", "북한산보국문", "정릉", "성신여대입구", "보문", "신설동"] },
-    "UJB": { name: "의정부경전철", color: "#FDA600", stations: ["발곡", "회룡", "범골", "의정부시청", "흥선", "중앙", "동오", "새말", "탑석"] },
-    "GPG": { name: "김포골드라인", color: "#AD8605", stations: ["양촌", "구래", "마산", "장기", "운양", "걸포북변", "사우", "풍무", "고촌", "김포공항"] },
-    "SL": { name: "신림선", color: "#6789CA", stations: ["샛강", "대방", "서울지방병무청", "보라매", "보라매공원", "보라매병원", "당곡", "신림", "서원", "서울대벤처타운", "관악산"] },
-    "EVL": { name: "에버라인", color: "#5FB440", stations: ["기흥", "강남대", "지석", "어정", "동백", "초당", "삼가", "시청·용인대", "명지대", "김량장", "운동장·송담대", "고진", "보평", "둔전", "전대·에버랜드"] }
-  };
-
-  const stationsData = {
-    "연천": {x: 1400, y: 100}, "동두천": {x: 1400, y: 200}, "의정부": {x: 1400, y: 300}, "회룡": {x: 1400, y: 400}, "발곡": {x: 1250, y: 400}, "범골": {x: 1550, y: 400}, "의정부시청": {x: 1650, y: 400}, "흥선": {x: 1750, y: 400}, "중앙": {x: 1850, y: 400}, "동오": {x: 1950, y: 400}, "새말": {x: 2050, y: 400}, "탑석": {x: 2150, y: 400}, "도봉산": {x: 1400, y: 500}, "창동": {x: 1400, y: 600}, "광운대": {x: 1400, y: 700}, "석계": {x: 1400, y: 800}, "청량리": {x: 1400, y: 1000}, "신설동": {x: 1200, y: 1100}, "동묘앞": {x: 1100, y: 1100}, "종로3가": {x: 1000, y: 1200}, "시청": {x: 900, y: 1300}, "서울역": {x: 900, y: 1400}, "남영": {x: 900, y: 1450}, "용산": {x: 900, y: 1550}, "노량진": {x: 800, y: 1650}, "신길": {x: 700, y: 1700}, "신도림": {x: 600, y: 1800}, "구로": {x: 500, y: 1900}, "부천": {x: 350, y: 1900}, "부평": {x: 200, y: 1900}, "인천": {x: 100, y: 1900}, "가산디지털단지": {x: 500, y: 2000}, "금정": {x: 500, y: 2200}, "수원": {x: 600, y: 2500}, "고색": {x: 500, y: 2500}, "오이도": {x: 300, y: 2500}, "신창": {x: 600, y: 2800}, "을지로3가": {x: 1200, y: 1300}, "동대문역사문화공원": {x: 1300, y: 1300}, "신당": {x: 1400, y: 1300}, "왕십리": {x: 1500, y: 1300}, "성수": {x: 1600, y: 1400}, "건대입구": {x: 1600, y: 1500}, "잠실": {x: 1700, y: 1600}, "종합운동장": {x: 1600, y: 1700}, "삼성": {x: 1500, y: 1700}, "선릉": {x: 1400, y: 1700}, "강남": {x: 1300, y: 1700}, "교대": {x: 1200, y: 1700}, "서초": {x: 1100, y: 1700}, "사당": {x: 1000, y: 1900}, "신림": {x: 800, y: 1900}, "대림": {x: 600, y: 1800}, "당산": {x: 700, y: 1600}, "합정": {x: 700, y: 1500}, "홍대입구": {x: 800, y: 1400}, "신촌": {x: 900, y: 1350}, "이대": {x: 950, y: 1350}, "충정로": {x: 950, y: 1300}, "대화": {x: 400, y: 600}, "대곡": {x: 600, y: 800}, "연신내": {x: 900, y: 900}, "불광": {x: 950, y: 950}, "독립문": {x: 950, y: 1100}, "경복궁": {x: 1050, y: 1100}, "충무로": {x: 1200, y: 1400}, "약수": {x: 1300, y: 1450}, "압구정": {x: 1300, y: 1550}, "고속터미널": {x: 1200, y: 1650}, "남부터미널": {x: 1200, y: 1750}, "양재": {x: 1300, y: 1850}, "수서": {x: 1600, y: 1850}, "가락시장": {x: 1700, y: 1850}, "오금": {x: 1800, y: 1850}, "진접": {x: 1800, y: 500}, "불암산": {x: 1700, y: 600}, "노원": {x: 1600, y: 600}, "성신여대입구": {x: 1250, y: 1000}, "혜화": {x: 1250, y: 1100}, "동대문": {x: 1300, y: 1200}, "명동": {x: 1100, y: 1400}, "숙대입구": {x: 950, y: 1450}, "삼각지": {x: 1000, y: 1550}, "이촌": {x: 1100, y: 1650}, "동작": {x: 1100, y: 1750}, "이수": {x: 1000, y: 1800}, "안산": {x: 400, y: 2300}, "방화": {x: 300, y: 1300}, "김포공항": {x: 400, y: 1400}, "마곡": {x: 500, y: 1400}, "여의도": {x: 800, y: 1600}, "공덕": {x: 900, y: 1500}, "광화문": {x: 1000, y: 1150}, "을지로4가": {x: 1250, y: 1250}, "청구": {x: 1400, y: 1350}, "군자": {x: 1600, y: 1300}, "천호": {x: 1800, y: 1300}, "강동": {x: 1900, y: 1300}, "하남검단산": {x: 2100, y: 1300}, "응암": {x: 800, y: 1000}, "디지털미디어시티": {x: 700, y: 1200}, "효창공원앞": {x: 950, y: 1500}, "이태원": {x: 1100, y: 1450}, "보문": {x: 1350, y: 1100}, "안암": {x: 1400, y: 1050}, "고려대": {x: 1450, y: 1000}, "태릉입구": {x: 1600, y: 800}, "봉화산": {x: 1700, y: 800}, "신내": {x: 1800, y: 800}, "장암": {x: 1600, y: 400}, "상봉": {x: 1600, y: 1000}, "강남구청": {x: 1400, y: 1600}, "논현": {x: 1300, y: 1600}, "온수": {x: 400, y: 1850}, "부평구청": {x: 200, y: 1850}, "석남": {x: 100, y: 1850}, "별내": {x: 1800, y: 1100}, "구리": {x: 1800, y: 1200}, "몽촌토성": {x: 1750, y: 1550}, "석촌": {x: 1700, y: 1700}, "복정": {x: 1700, y: 1950}, "모란": {x: 1700, y: 2050}, "마곡나루": {x: 500, y: 1500}, "샛강": {x: 800, y: 1750}, "신논현": {x: 1300, y: 1650}, "선정릉": {x: 1400, y: 1650}, "올림픽공원": {x: 1900, y: 1700}, "중앙보훈병원": {x: 2000, y: 1700}, "양촌": {x: 50, y: 1400}, "구래": {x: 100, y: 1400}, "마산": {x: 150, y: 1400}, "장기": {x: 200, y: 1400}, "운양": {x: 250, y: 1400}, "걸포북변": {x: 300, y: 1400}, "사우": {x: 350, y: 1400}, "풍무": {x: 350, y: 1450}, "고촌": {x: 350, y: 1500}, "대방": {x: 800, y: 1700}, "서울지방병무청": {x: 800, y: 1750}, "보라매": {x: 800, y: 1800}, "보라매공원": {x: 800, y: 1850}, "보라매병원": {x: 850, y: 1850}, "당곡": {x: 900, y: 1850}, "서원": {x: 800, y: 1950}, "서울대벤처타운": {x: 800, y: 2000}, "관악산": {x: 800, y: 2100}, "기흥": {x: 1300, y: 1950}, "강남대": {x: 1400, y: 1950}, "지석": {x: 1500, y: 1950}, "어정": {x: 1600, y: 1950}, "동백": {x: 1650, y: 2000}, "초당": {x: 1650, y: 2050}, "삼가": {x: 1650, y: 2100}, "시청·용인대": {x: 1750, y: 2100}, "명지대": {x: 1850, y: 2100}, "김량장": {x: 1950, y: 2100}, "운동장·송담대": {x: 2050, y: 2100}, "고진": {x: 2100, y: 2150}, "보평": {x: 2100, y: 2200}, "둔전": {x: 2100, y: 2250}, "전대·에버랜드": {x: 2100, y: 2350}, "북한산우이": {x: 1250, y: 500}, "솔밭공원": {x: 1250, y: 550}, "4.19민주묘지": {x: 1250, y: 600}, "가오리": {x: 1250, y: 650}, "화계": {x: 1250, y: 700}, "삼양": {x: 1250, y: 750}, "삼양사거리": {x: 1250, y: 800}, "솔샘": {x: 1250, y: 850}, "북한산보국문": {x: 1250, y: 900}, "정릉": {x: 1250, y: 950}
-  };
-
-  // --- 상태 관리 ---
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 0.8 });
-  const [selectedStation, setSelectedStation] = useState(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [highlight, setHighlight] = useState(null);
-  const mapRef = useRef(null);
-  
-  // 드래그 상태 관리
-  const isDragging = useRef(false);
-  const lastMousePos = useRef({ x: 0, y: 0 });
-
-  // --- 헬퍼 함수 ---
-  const moveTo = (x, y, customScale = null) => {
-    if (!mapRef.current) return;
-    const currentScale = customScale || transform.scale;
-    const { clientWidth, clientHeight } = mapRef.current;
-    setTransform(prev => ({
-      scale: currentScale,
-      x: (clientWidth / 2) - (x * currentScale),
-      y: (clientHeight / 2) - (y * currentScale)
-    }));
-  };
-
-  const handleZoom = (factor) => {
-    setTransform(prev => {
-      const newScale = Math.min(3.0, Math.max(0.2, prev.scale * factor));
-      const { clientWidth, clientHeight } = mapRef.current;
-      const centerX = clientWidth / 2;
-      const centerY = clientHeight / 2;
-      return {
-        scale: newScale,
-        x: centerX - ((centerX - prev.x) / prev.scale) * newScale,
-        y: centerY - ((centerY - prev.y) / prev.scale) * newScale
-      };
-    });
-  };
-
-  // 노선 데이터 인덱싱
-  const stationLineMap = useMemo(() => {
-    const map = {};
-    Object.entries(lines).forEach(([id, line]) => {
-      line.stations.forEach(s => {
-        if (!map[s]) map[s] = [];
-        map[s].push({ name: line.name, color: line.color });
-      });
-    });
-    return map;
-  }, []);
-
-  // 드래그 이벤트 핸들러
-  const handleMouseDown = (e) => {
-    if (e.button !== 0) return; // 왼쪽 클릭만 허용
-    isDragging.current = true;
-    lastMousePos.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging.current) return;
-    
-    const deltaX = e.clientX - lastMousePos.current.x;
-    const deltaY = e.clientY - lastMousePos.current.y;
-    
-    setTransform(prev => ({
-      ...prev,
-      x: prev.x + deltaX,
-      y: prev.y + deltaY
-    }));
-    
-    lastMousePos.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseUp = () => {
-    isDragging.current = false;
-  };
-
-  // 터치 지원
-  const handleTouchStart = (e) => {
-    if (e.touches.length !== 1) return;
-    isDragging.current = true;
-    lastMousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging.current || e.touches.length !== 1) return;
-    
-    const deltaX = e.touches[0].clientX - lastMousePos.current.x;
-    const deltaY = e.touches[0].clientY - lastMousePos.current.y;
-    
-    setTransform(prev => ({
-      ...prev,
-      x: prev.x + deltaX,
-      y: prev.y + deltaY
-    }));
-    
-    lastMousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  };
-
-  useEffect(() => {
-    if (searchTerm.length >= 1) {
-      const found = Object.keys(stationsData).find(name => name === searchTerm);
-      if (found) {
-        moveTo(stationsData[found].x, stationsData[found].y, 1.2);
-        setSelectedStation(found);
-      }
-    }
-  }, [searchTerm]);
-
-  useEffect(() => {
-    // 초기 렌더링 시 중앙 정렬
-    const t = setTimeout(() => {
-      moveTo(stationsData["서울역"].x, stationsData["서울역"].y, 0.8);
-    }, 100);
-    return () => clearTimeout(t);
-  }, []);
-
-  return (
-    <div className="flex h-screen w-screen bg-[#0b0f19] text-white overflow-hidden font-sans relative select-none">
-      
-      {/* 사이드바 */}
-      <aside 
-        className={`fixed left-0 top-0 z-[100] h-full w-80 bg-[#1e293b] shadow-2xl transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-      >
-        <div className="p-6 h-full flex flex-col">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-600 rounded-lg"><Navigation size={20}/></div>
-              <h1 className="text-xl font-bold tracking-tight">서울 지하철</h1>
-            </div>
-            <button 
-              onClick={() => setIsMenuOpen(false)} 
-              className="p-2 hover:bg-white/10 rounded-full text-slate-400"
-            >
-              <ChevronLeft size={24}/>
-            </button>
-          </div>
-
-          <div className="relative mb-8">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16}/>
-            <input 
-              className="w-full bg-slate-900 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="역 검색..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-            <p className="text-[10px] text-slate-500 font-bold uppercase mb-4 tracking-widest">노선별 필터</p>
-            {Object.entries(lines).filter(([_, l]) => !l.isBranch).map(([id, line]) => (
-              <button 
-                key={id}
-                onClick={() => setHighlight(highlight === line.name ? null : line.name)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${highlight === line.name ? 'bg-indigo-600/20 border-indigo-500/50 text-white' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}
-              >
-                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: line.color}} />
-                <span className="text-xs font-semibold">{line.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </aside>
-
-      {/* 메인 맵 컨테이너 */}
-      <main 
-        ref={mapRef} 
-        className="relative flex-1 h-full bg-[#0b1120] overflow-hidden cursor-grab active:cursor-grabbing touch-none"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleMouseUp}
-      >
-        {!isMenuOpen && (
-          <button 
-            onClick={() => setIsMenuOpen(true)} 
-            className="absolute top-6 left-6 z-50 p-4 bg-indigo-600 rounded-2xl shadow-xl hover:bg-indigo-500 transition-all active:scale-95"
-          >
-            <Menu size={20}/>
-          </button>
-        )}
-
-        {/* 지도 콘텐츠 레이어 */}
-        <div 
-          className="absolute inset-0 origin-top-left will-change-transform"
-          style={{ 
-            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
-          }}
-        >
-          {/* SVG 노선 그리기 */}
-          <svg width="4000" height="4000" className="absolute top-0 left-0 pointer-events-none overflow-visible">
-            {Object.entries(lines).map(([id, line]) => {
-              const pts = line.stations.map(s => stationsData[s]).filter(Boolean).map(p => `${p.x},${p.y}`).join(' ');
-              const isDimmed = highlight && highlight !== line.name;
-              return (
-                <polyline 
-                  key={`line-${id}`} 
-                  points={pts} 
-                  stroke={line.color} 
-                  strokeWidth="12" 
-                  fill="none" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  style={{ opacity: isDimmed ? 0.08 : 0.85, transition: 'opacity 0.3s' }}
-                />
-              );
-            })}
-          </svg>
-
-          {/* 역 아이콘 및 이름 레이어 */}
-          {Object.entries(stationsData).map(([name, pos]) => {
-            const myLines = stationLineMap[name] || [];
-            const isTr = myLines.length > 1;
-            const isSel = selectedStation === name;
-            const isMatched = (!searchTerm || name.includes(searchTerm)) && (!highlight || myLines.some(l => l.name === highlight));
-            const opacity = isMatched ? 1 : 0.15;
-
-            return (
-              <div 
-                key={`station-${name}`}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2"
-                style={{ left: pos.x, top: pos.y, opacity, transition: 'opacity 0.3s', zIndex: isSel ? 60 : (isTr ? 40 : 20) }}
-              >
-                <div 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    setSelectedStation(name); 
-                  }}
-                  className={`w-5 h-5 rounded-full border-2 bg-white cursor-pointer transition-all ${isSel ? 'scale-150 ring-4 ring-indigo-500/40 border-indigo-500' : 'hover:scale-125 border-slate-700'}`}
-                />
-                <span className={`absolute top-6 left-1/2 -translate-x-1/2 text-[11px] font-bold whitespace-nowrap px-1 pointer-events-none ${isSel ? 'text-indigo-400 text-sm' : 'text-white'}`} style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                  {name}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* UI 컨트롤 */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 shadow-2xl z-50">
-          <button onClick={(e) => { e.stopPropagation(); handleZoom(0.8); }} className="p-2 hover:bg-white/10 rounded-xl text-slate-300 active:scale-90 transition-transform"><ZoomOut size={18}/></button>
-          <span className="text-xs font-mono w-14 text-center text-indigo-400 font-bold">{Math.round(transform.scale * 100)}%</span>
-          <button onClick={(e) => { e.stopPropagation(); handleZoom(1.25); }} className="p-2 hover:bg-white/10 rounded-xl text-slate-300 active:scale-90 transition-transform"><ZoomIn size={18}/></button>
-          <div className="w-[1px] h-4 bg-white/20 mx-1" />
-          <button onClick={(e) => { e.stopPropagation(); setTransform({x:0, y:0, scale:0.8}); moveTo(stationsData["서울역"].x, stationsData["서울역"].y, 0.8); setSearchTerm(""); setHighlight(null); setSelectedStation(null); }} className="p-2 hover:bg-white/10 rounded-xl text-slate-300"><RotateCcw size={16}/></button>
-        </div>
-
-        {/* 상세 정보 카드 */}
-        {selectedStation && (
-          <div className="absolute bottom-24 right-8 w-72 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl z-50 animate-in">
-            <div className="flex justify-between items-start mb-5">
-              <h2 className="text-2xl font-black tracking-tight">{selectedStation}</h2>
-              <button onClick={() => setSelectedStation(null)} className="p-1.5 hover:bg-white/10 rounded-full text-slate-400 transition-colors"><X size={20}/></button>
-            </div>
-            <div className="space-y-5">
-              <div>
-                <p className="text-[10px] text-slate-500 font-black mb-3 tracking-widest uppercase">경유 노선</p>
-                <div className="flex flex-wrap gap-2">
-                  {stationLineMap[selectedStation].map(l => (
-                    <div key={l.name} className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: l.color}}/>
-                      <span className="text-xs font-bold">{l.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <button className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-black tracking-widest uppercase shadow-xl shadow-indigo-600/20 active:scale-[0.98] transition-all">도착 정보 실시간 확인</button>
-            </div>
-          </div>
-        )}
-      </main>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        @keyframes fadeInSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-in { animation: fadeInSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        body { -webkit-user-select: none; user-select: none; }
-      `}</style>
-    </div>
-  );
-};
-
-export default App;
-
-```
-      {/* 사이드바 - transform 기반으로 수정하여 레이아웃 방해 최소화 */}
-      <aside 
-        className={`fixed left-0 top-0 z-[60] h-full bg-[#1e293b] shadow-2xl transition-transform duration-300 ease-in-out w-80 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-      >
-        <div className="p-6 flex flex-col h-full overflow-hidden">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-600 rounded-lg"><Navigation size={20}/></div>
-              <h1 className="text-xl font-bold tracking-tight">서울 메트로 맵</h1>
-            </div>
-            <button 
-              onClick={() => setIsMenuOpen(false)} 
-              className="p-2 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
-            >
-              <ChevronLeft size={24}/>
-            </button>
-          </div>
-
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16}/>
-            <input 
-              className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-              placeholder="역 이름을 입력하세요..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="flex-1 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
-            <p className="text-[10px] text-slate-500 font-bold uppercase mb-3 tracking-widest px-2">전체 노선</p>
-            {Object.entries(lines).map(([id, line]) => (
-              <button 
-                key={id}
-                onClick={() => setHighlightLine(highlightLine === line.name ? null : line.name)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${highlightLine === line.name ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10 hover:text-white'}`}
-              >
-                <div className="w-3 h-3 rounded-full shrink-0" style={{backgroundColor: line.color}} />
-                <span className="text-xs font-semibold truncate text-left">{line.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </aside>
-
-      {/* 메인 맵 영역 */}
-      <main ref={mapRef} className="relative flex-1 bg-[#0b1120] overflow-hidden cursor-grab active:cursor-grabbing">
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>서울 메트로 맵 (HTML 버전)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
         
-        {/* 사이드바 열기 버튼 - 절대 위치 고정 */}
-        {!isMenuOpen && (
-          <button 
-            onClick={() => setIsMenuOpen(true)} 
-            className="absolute top-6 left-6 z-50 p-4 bg-indigo-600 rounded-2xl shadow-xl hover:bg-indigo-500 transition-all hover:scale-105 active:scale-95"
-          >
-            <Menu size={20}/>
-          </button>
-        )}
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0b0f19;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
 
-        <div 
-          className="absolute inset-0"
-          style={{ 
-            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
-            transformOrigin: '0 0'
-          }}
-          onMouseDown={(e) => {
-            const startX = e.clientX - transform.x;
-            const startY = e.clientY - transform.y;
-            const move = (mE) => setTransform(v => ({ ...v, x: mE.clientX - startX, y: mE.clientY - startY }));
-            const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
-            window.addEventListener('mousemove', move);
-            window.addEventListener('mouseup', up);
-          }}
-        >
-          {/* 노선 레이어 */}
-          <svg width="4000" height="4000" className="absolute top-0 left-0 overflow-visible" style={{ pointerEvents: 'none' }}>
-            {Object.entries(lines).map(([id, line]) => {
-              const pts = line.stations.map(s => stationsData[s]).filter(Boolean).map(p => `${p.x},${p.y}`).join(' ');
-              const isDimmed = highlightLine && highlightLine !== line.name;
-              return (
-                <polyline 
-                  key={`path-${id}`} 
-                  points={pts} 
-                  stroke={line.color} 
-                  strokeWidth="12" 
-                  fill="none" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  style={{ opacity: isDimmed ? 0.08 : 0.85, transition: 'opacity 0.4s ease' }}
-                />
-              );
-            })}
-          </svg>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        
+        @keyframes fadeInSlide { 
+            from { transform: translateY(20px); opacity: 0; } 
+            to { transform: translateY(0); opacity: 1; } 
+        }
+        .animate-in { animation: fadeInSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        #map-layer {
+            transform-origin: 0 0;
+            will-change: transform;
+        }
 
-          {/* 역 레이어 */}
-          <div className="absolute top-0 left-0" style={{ width: '4000px', height: '4000px' }}>
-            {Object.entries(stationsData).map(([name, pos]) => {
-              const myLines = stationMembership[name] || [];
-              const isTransfer = myLines.length > 1;
-              const isSelected = selectedStation === name;
-              const isSearchMatch = !searchTerm || name.includes(searchTerm);
-              const isLineMatch = !highlightLine || myLines.some(l => l.name === highlightLine);
-              const opacity = (isSearchMatch && isLineMatch) ? 1 : 0.12;
+        .station-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.4s ease;
+        }
 
-              return (
-                <div 
-                  key={`node-${name}`}
-                  className="absolute"
-                  style={{ 
-                    left: `${pos.x}px`, 
-                    top: `${pos.y}px`,
-                    opacity: opacity,
-                    zIndex: isSelected ? 100 : (isTransfer ? 30 : 20),
-                    transition: 'opacity 0.4s ease, transform 0.2s'
-                  }}
-                >
-                  <div 
-                    onClick={(e) => { e.stopPropagation(); setSelectedStation(name); }}
-                    className={`absolute rounded-full border-[3px] bg-white cursor-pointer shadow-lg transform -translate-x-1/2 -translate-y-1/2 transition-all duration-200 ${isSelected ? 'scale-[1.8] ring-4 ring-indigo-500/40' : 'hover:scale-125'}`}
-                    style={{ 
-                      width: '18px', 
-                      height: '18px',
-                      borderColor: isTransfer ? '#334155' : (myLines[0]?.color || '#fff')
-                    }}
-                  />
+        .station-circle {
+            position: absolute;
+            border-radius: 50%;
+            border-style: solid;
+            background-color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            transform: translate(-50%, -50%);
+            transition: all 0.2s ease;
+        }
+        .station-circle:hover { transform: translate(-50%, -50%) scale(1.25); }
+        .station-circle.selected {
+            transform: translate(-50%, -50%) scale(1.8);
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.4);
+        }
 
-                  <div className="absolute top-5 left-0 -translate-x-1/2 pt-1 pointer-events-none">
-                    <span className={`text-[12px] font-bold whitespace-nowrap px-1 transition-all ${isSelected ? 'text-indigo-400 scale-125' : 'text-white'}`}
-                      style={{ 
-                        textShadow: '0px 2px 4px rgba(0,0,0,1), 0px 0px 8px rgba(0,0,0,0.8)',
-                        display: 'block'
-                      }}
-                    >
-                      {name}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        .station-label {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 0 4px;
+            transition: all 0.2s ease;
+            text-shadow: 0px 2px 4px rgba(0,0,0,1);
+            display: block;
+        }
+        .station-label.selected {
+            color: #818cf8;
+            transform: translateX(-50%) scale(1.25);
+            background-color: rgba(15, 23, 42, 0.8);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex h-screen w-screen relative">
 
-        {/* 하단 툴바 */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-slate-900/90 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/10 shadow-2xl z-[100]">
-          <button onClick={() => handleZoom(0.7)} className="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-colors"><ZoomOut size={20}/></button>
-          <span className="text-[11px] font-mono w-14 text-center text-indigo-400 font-bold tracking-tighter">{Math.round(transform.scale * 100)}%</span>
-          <button onClick={() => handleZoom(1.4)} className="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-colors"><ZoomIn size={20}/></button>
-          <div className="w-[1px] h-4 bg-white/10 mx-1" />
-          <button onClick={() => { setTransform({x:0, y:0, scale:0.8}); moveTo(stationsData["서울역"].x, stationsData["서울역"].y); setSearchTerm(""); setHighlightLine(null); setSelectedStation(null); }} className="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-colors"><RotateCcw size={18}/></button>
-        </div>
-
-        {/* 상세 정보 카드 */}
-        {selectedStation && (
-          <div className="absolute bottom-24 right-8 w-72 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-2xl z-[100] animate-in">
-            <div className="flex justify-between items-start mb-5">
-              <h2 className="text-2xl font-black tracking-tight">{selectedStation}</h2>
-              <button onClick={() => setSelectedStation(null)} className="p-1 hover:bg-white/10 rounded-full text-slate-500"><X size={20}/></button>
-            </div>
-            <div className="space-y-5">
-              <div>
-                <p className="text-[9px] text-slate-500 font-bold mb-3 tracking-[0.2em] uppercase">정차 노선</p>
-                <div className="flex flex-wrap gap-2">
-                  {(stationMembership[selectedStation] || []).map(l => (
-                    <div key={l.id} className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/5">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: l.color}}/>
-                      <span className="text-[11px] font-bold text-slate-200">{l.name}</span>
+    <!-- 사이드바 -->
+    <aside id="sidebar" class="fixed left-0 top-0 z-[110] h-full w-80 bg-[#1e293b] shadow-2xl transition-transform duration-300 ease-in-out translate-x-0">
+        <div class="p-6 flex flex-col h-full overflow-hidden">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-indigo-600 rounded-lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
                     </div>
-                  ))}
+                    <h1 class="text-xl font-bold tracking-tight">서울 메트로 맵</h1>
                 </div>
-              </div>
-              <button className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-500/25 active:scale-95 transition-all uppercase tracking-widest">실시간 정보 보기</button>
+                <button onclick="toggleMenu()" class="p-2 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
             </div>
-          </div>
-        )}
-      </main>
 
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
-        @keyframes fadeInSlide { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-in { animation: fadeInSlide 0.3s cubic-bezier(0, 0, 0.2, 1) forwards; }
-      `}</style>
-    </div>
-  );
-};
+            <div class="relative mb-6">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input id="search-input" class="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="역 이름을 검색하세요...">
+            </div>
 
-export default App;
+            <div class="flex-1 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
+                <p class="text-[10px] text-slate-500 font-bold uppercase mb-3 tracking-widest px-2">노선 필터링</p>
+                <div id="line-filters"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 메인 맵 영역 -->
+    <main id="map-container" class="relative flex-1 bg-[#0b1120] overflow-hidden cursor-grab touch-none">
+        
+        <!-- 숨겨졌을 때 나타나는 메뉴 버튼 -->
+        <button id="menu-btn" onclick="toggleMenu()" class="hidden absolute top-6 left-6 z-50 p-4 bg-indigo-600 rounded-2xl shadow-xl hover:bg-indigo-500 transition-all hover:scale-105 active:scale-95">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+
+        <!-- 캔버스 레이어 -->
+        <div id="map-layer" class="absolute inset-0">
+            <svg id="svg-layer" width="4000" height="4000" class="absolute top-0 left-0 pointer-events-none overflow-visible"></svg>
+            <div id="station-layer" class="absolute top-0 left-0 w-[4000px] h-[4000px]"></div>
+        </div>
+
+        <!-- 하단 줌 컨트롤러 -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-slate-900/90 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/10 shadow-2xl z-[100]">
+            <button onclick="handleZoom(0.7)" class="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+            </button>
+            <span id="zoom-text" class="text-[11px] font-mono w-14 text-center text-indigo-400 font-bold tracking-tighter">80%</span>
+            <button onclick="handleZoom(1.4)" class="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+            </button>
+            <div class="w-[1px] h-4 bg-white/10 mx-1"></div>
+            <button onclick="resetView()" class="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+            </button>
+        </div>
+
+        <!-- 상세 정보 카드 -->
+        <div id="detail-card" class="hidden absolute bottom-24 right-8 w-72 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-2xl z-[100] animate-in">
+            <div class="flex justify-between items-start mb-5">
+                <h2 id="detail-title" class="text-2xl font-black tracking-tight"></h2>
+                <button onclick="closeDetail()" class="p-1.5 hover:bg-white/10 rounded-full text-slate-500 hover:text-white transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="space-y-5">
+                <div>
+                    <p class="text-[9px] text-slate-500 font-bold mb-3 tracking-[0.2em] uppercase">경유 노선</p>
+                    <div id="detail-lines" class="flex flex-wrap gap-2"></div>
+                </div>
+                <button class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-500/25 active:scale-95 transition-all uppercase tracking-widest">
+                    실시간 열차 정보
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- 데이터 정의 ---
+        const lines = {
+            "L1": { name: "1호선", color: "#0052A4", stations: ["연천", "동두천", "의정부", "회룡", "도봉산", "창동", "광운대", "석계", "청량리", "신설동", "동묘앞", "종로3가", "시청", "서울역", "남영", "용산", "노량진", "신길", "신도림", "구로", "부천", "부평", "인천"] },
+            "L1B": { name: "1호선(경부)", color: "#0052A4", isBranch: true, stations: ["구로", "가산디지털단지", "금정", "수원", "고색", "오이도", "신창"] },
+            "L2": { name: "2호선", color: "#00A84D", stations: ["시청", "을지로3가", "동대문역사문화공원", "신당", "왕십리", "성수", "건대입구", "잠실", "종합운동장", "삼성", "선릉", "강남", "교대", "서초", "사당", "신림", "대림", "신도림", "당산", "합정", "홍대입구", "신촌", "이대", "충정로", "시청"] },
+            "L3": { name: "3호선", color: "#EF7C1C", stations: ["대화", "대곡", "연신내", "불광", "독립문", "경복궁", "종로3가", "을지로3가", "충무로", "약수", "옥수", "압구정", "신사", "고속터미널", "교대", "남부터미널", "양재", "수서", "가락시장", "오금"] },
+            "L4": { name: "4호선", color: "#00A5DE", stations: ["진접", "불암산", "노원", "창동", "성신여대입구", "혜화", "동대문", "동대문역사문화공원", "충무로", "명동", "서울역", "숙대입구", "삼각지", "이촌", "동작", "이수", "사당", "금정", "안산", "오이도"] },
+            "L5": { name: "5호선", color: "#996CAC", stations: ["방화", "김포공항", "마곡", "여의도", "신길", "공덕", "충정로", "광화문", "종로3가", "을지로4가", "동대문역사문화공원", "청구", "왕십리", "군자", "천호", "강동", "하남검단산"] },
+            "L6": { name: "6호선", color: "#CD7C2F", stations: ["응암", "디지털미디어시티", "합정", "공덕", "효창공원앞", "삼각지", "이태원", "약수", "청구", "신당", "동묘앞", "보문", "안암", "고려대", "석계", "태릉입구", "봉화산", "신내"] },
+            "L7": { name: "7호선", color: "#747F00", stations: ["장암", "도봉산", "노원", "태릉입구", "상봉", "군자", "건대입구", "강남구청", "논현", "고속터미널", "이수", "대림", "가산디지털단지", "온수", "부평구청", "석남"] },
+            "L8": { name: "8호선", color: "#E6186C", stations: ["별내", "구리", "천호", "몽촌토성", "잠실", "석촌", "가락시장", "복정", "모란"] },
+            "L9": { name: "9호선", color: "#BDB092", stations: ["김포공항", "마곡나루", "당산", "여의도", "샛강", "노량진", "동작", "고속터미널", "신논현", "선정릉", "종합운동장", "석촌", "올림픽공원", "중앙보훈병원"] },
+            "UI": { name: "우이신설선", color: "#B0AD00", stations: ["북한산우이", "솔밭공원", "4.19민주묘지", "가오리", "화계", "삼양", "삼양사거리", "솔샘", "북한산보국문", "정릉", "성신여대입구", "보문", "신설동"] },
+            "UJB": { name: "의정부경전철", color: "#FDA600", stations: ["발곡", "회룡", "범골", "의정부시청", "흥선", "중앙", "동오", "새말", "탑석"] },
+            "GPG": { name: "김포골드라인", color: "#AD8605", stations: ["양촌", "구래", "마산", "장기", "운양", "걸포북변", "사우", "풍무", "고촌", "김포공항"] },
+            "SL": { name: "신림선", color: "#6789CA", stations: ["샛강", "대방", "서울지방병무청", "보라매", "보라매공원", "보라매병원", "당곡", "신림", "서원", "서울대벤처타운", "관악산"] },
+            "EVL": { name: "에버라인", color: "#5FB440", stations: ["기흥", "강남대", "지석", "어정", "동백", "초당", "삼가", "시청·용인대", "명지대", "김량장", "운동장·송담대", "고진", "보평", "둔전", "전대·에버랜드"] }
+        };
+
+        const stationsData = {
+            "연천": {x: 1400, y: 100}, "동두천": {x: 1400, y: 200}, "의정부": {x: 1400, y: 300}, "회룡": {x: 1400, y: 400}, "발곡": {x: 1250, y: 400}, "범골": {x: 1550, y: 400}, "의정부시청": {x: 1650, y: 400}, "흥선": {x: 1750, y: 400}, "중앙": {x: 1850, y: 400}, "동오": {x: 1950, y: 400}, "새말": {x: 2050, y: 400}, "탑석": {x: 2150, y: 400}, "도봉산": {x: 1400, y: 500}, "창동": {x: 1400, y: 600}, "광운대": {x: 1400, y: 700}, "석계": {x: 1400, y: 800}, "청량리": {x: 1400, y: 1000}, "신설동": {x: 1200, y: 1100}, "동묘앞": {x: 1100, y: 1100}, "종로3가": {x: 1000, y: 1200}, "시청": {x: 900, y: 1300}, "서울역": {x: 900, y: 1400}, "남영": {x: 900, y: 1450}, "용산": {x: 900, y: 1550}, "노량진": {x: 800, y: 1650}, "신길": {x: 700, y: 1700}, "신도림": {x: 600, y: 1800}, "구로": {x: 500, y: 1900}, "부천": {x: 350, y: 1900}, "부평": {x: 200, y: 1900}, "인천": {x: 100, y: 1900}, "가산디지털단지": {x: 500, y: 2000}, "금정": {x: 500, y: 2200}, "수원": {x: 600, y: 2500}, "고색": {x: 500, y: 2500}, "오이도": {x: 300, y: 2500}, "신창": {x: 600, y: 2800}, "을지로3가": {x: 1200, y: 1300}, "동대문역사문화공원": {x: 1300, y: 1300}, "신당": {x: 1400, y: 1300}, "왕십리": {x: 1500, y: 1300}, "성수": {x: 1600, y: 1400}, "건대입구": {x: 1600, y: 1500}, "잠실": {x: 1700, y: 1600}, "종합운동장": {x: 1600, y: 1700}, "삼성": {x: 1500, y: 1700}, "선릉": {x: 1400, y: 1700}, "강남": {x: 1300, y: 1700}, "교대": {x: 1200, y: 1700}, "서초": {x: 1100, y: 1700}, "사당": {x: 1000, y: 1900}, "신림": {x: 800, y: 1900}, "대림": {x: 600, y: 1800}, "당산": {x: 700, y: 1600}, "합정": {x: 700, y: 1500}, "홍대입구": {x: 800, y: 1400}, "신촌": {x: 900, y: 1350}, "이대": {x: 950, y: 1350}, "충정로": {x: 950, y: 1300}, "대화": {x: 400, y: 600}, "대곡": {x: 600, y: 800}, "연신내": {x: 900, y: 900}, "불광": {x: 950, y: 950}, "독립문": {x: 950, y: 1100}, "경복궁": {x: 1050, y: 1100}, "충무로": {x: 1200, y: 1400}, "약수": {x: 1300, y: 1450}, "압구정": {x: 1300, y: 1550}, "고속터미널": {x: 1200, y: 1650}, "남부터미널": {x: 1200, y: 1750}, "양재": {x: 1300, y: 1850}, "수서": {x: 1600, y: 1850}, "가락시장": {x: 1700, y: 1850}, "오금": {x: 1800, y: 1850}, "진접": {x: 1800, y: 500}, "불암산": {x: 1700, y: 600}, "노원": {x: 1600, y: 600}, "성신여대입구": {x: 1250, y: 1000}, "혜화": {x: 1250, y: 1100}, "동대문": {x: 1300, y: 1200}, "명동": {x: 1100, y: 1400}, "숙대입구": {x: 950, y: 1450}, "삼각지": {x: 1000, y: 1550}, "이촌": {x: 1100, y: 1650}, "동작": {x: 1100, y: 1750}, "이수": {x: 1000, y: 1800}, "안산": {x: 400, y: 2300}, "방화": {x: 300, y: 1300}, "김포공항": {x: 400, y: 1400}, "마곡": {x: 500, y: 1400}, "여의도": {x: 800, y: 1600}, "공덕": {x: 900, y: 1500}, "광화문": {x: 1000, y: 1150}, "을지로4가": {x: 1250, y: 1250}, "청구": {x: 1400, y: 1350}, "군자": {x: 1600, y: 1300}, "천호": {x: 1800, y: 1300}, "강동": {x: 1900, y: 1300}, "하남검단산": {x: 2100, y: 1300}, "응암": {x: 800, y: 1000}, "디지털미디어시티": {x: 700, y: 1200}, "효창공원앞": {x: 950, y: 1500}, "이태원": {x: 1100, y: 1450}, "보문": {x: 1350, y: 1100}, "안암": {x: 1400, y: 1050}, "고려대": {x: 1450, y: 1000}, "태릉입구": {x: 1600, y: 800}, "봉화산": {x: 1700, y: 800}, "신내": {x: 1800, y: 800}, "장암": {x: 1600, y: 400}, "상봉": {x: 1600, y: 1000}, "강남구청": {x: 1400, y: 1600}, "논현": {x: 1300, y: 1600}, "온수": {x: 400, y: 1850}, "부평구청": {x: 200, y: 1850}, "석남": {x: 100, y: 1850}, "별내": {x: 1800, y: 1100}, "구리": {x: 1800, y: 1200}, "몽촌토성": {x: 1750, y: 1550}, "석촌": {x: 1700, y: 1700}, "복정": {x: 1700, y: 1950}, "모란": {x: 1700, y: 2050}, "마곡나루": {x: 500, y: 1500}, "샛강": {x: 800, y: 1750}, "신논현": {x: 1300, y: 1650}, "선정릉": {x: 1400, y: 1650}, "올림픽공원": {x: 1900, y: 1700}, "중앙보훈병원": {x: 2000, y: 1700}, "양촌": {x: 50, y: 1400}, "구래": {x: 100, y: 1400}, "마산": {x: 150, y: 1400}, "장기": {x: 200, y: 1400}, "운양": {x: 250, y: 1400}, "걸포북변": {x: 300, y: 1400}, "사우": {x: 350, y: 1400}, "풍무": {x: 350, y: 1450}, "고촌": {x: 350, y: 1500}, "대방": {x: 800, y: 1700}, "서울지방병무청": {x: 800, y: 1750}, "보라매": {x: 800, y: 1800}, "보라매공원": {x: 800, y: 1850}, "보라매병원": {x: 850, y: 1850}, "당곡": {x: 900, y: 1850}, "서원": {x: 800, y: 1950}, "서울대벤처타운": {x: 800, y: 2000}, "관악산": {x: 800, y: 2100}, "기흥": {x: 1300, y: 1950}, "강남대": {x: 1400, y: 1950}, "지석": {x: 1500, y: 1950}, "어정": {x: 1600, y: 1950}, "동백": {x: 1650, y: 2000}, "초당": {x: 1650, y: 2050}, "삼가": {x: 1650, y: 2100}, "시청·용인대": {x: 1750, y: 2100}, "명지대": {x: 1850, y: 2100}, "김량장": {x: 1950, y: 2100}, "운동장·송담대": {x: 2050, y: 2100}, "고진": {x: 2100, y: 2150}, "보평": {x: 2100, y: 2200}, "둔전": {x: 2100, y: 2250}, "전대·에버랜드": {x: 2100, y: 2350}, "북한산우이": {x: 1250, y: 500}, "솔밭공원": {x: 1250, y: 550}, "4.19민주묘지": {x: 1250, y: 600}, "가오리": {x: 1250, y: 650}, "화계": {x: 1250, y: 700}, "삼양": {x: 1250, y: 750}, "삼양사거리": {x: 1250, y: 800}, "솔샘": {x: 1250, y: 850}, "북한산보국문": {x: 1250, y: 900}, "정릉": {x: 1250, y: 950}
+        };
+
+        // --- 전역 상태 ---
+        const state = {
+            transform: { x: 0, y: 0, scale: 0.8 },
+            selectedStation: null,
+            isMenuOpen: true,
+            searchTerm: "",
+            highlightLine: null,
+            isDragging: false,
+            lastPos: { x: 0, y: 0 }
+        };
+
+        // 노선 포함 여부 계산 (중복 렌더링 방지)
+        const stationMembership = {};
+        Object.entries(lines).forEach(([id, line]) => {
+            line.stations.forEach(s => {
+                if (!stationMembership[s]) stationMembership[s] = [];
+                stationMembership[s].push({ id, name: line.name, color: line.color });
+            });
+        });
+
+        // --- DOM 요소 참조 ---
+        const mapContainer = document.getElementById('map-container');
+        const mapLayer = document.getElementById('map-layer');
+        const svgLayer = document.getElementById('svg-layer');
+        const stationLayer = document.getElementById('station-layer');
+        const sidebar = document.getElementById('sidebar');
+        const menuBtn = document.getElementById('menu-btn');
+        const zoomText = document.getElementById('zoom-text');
+        const searchInput = document.getElementById('search-input');
+        const lineFilters = document.getElementById('line-filters');
+        const detailCard = document.getElementById('detail-card');
+
+        // --- 초기화 ---
+        function init() {
+            renderSidebarFilters();
+            renderMap();
+            
+            // 중앙 정렬 (서울역 기준)
+            setTimeout(() => {
+                moveTo(stationsData["서울역"].x, stationsData["서울역"].y, 0.7);
+            }, 100);
+
+            // 이벤트 리스너 등록
+            searchInput.addEventListener('input', handleSearch);
+            
+            // 마우스 드래그
+            mapContainer.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', stopDragging);
+            
+            // 터치 드래그
+            mapContainer.addEventListener('touchstart', onTouchStart, {passive: false});
+            window.addEventListener('touchmove', onTouchMove, {passive: false});
+            window.addEventListener('touchend', stopDragging);
+        }
+
+        // --- 이동 및 확대 ---
+        function applyTransform() {
+            mapLayer.style.transform = `translate(${state.transform.x}px, ${state.transform.y}px) scale(${state.transform.scale})`;
+            zoomText.innerText = `${Math.round(state.transform.scale * 100)}%`;
+        }
+
+        function moveTo(x, y, customScale = null) {
+            const currentScale = customScale || state.transform.scale;
+            const centerX = mapContainer.clientWidth / 2;
+            const centerY = mapContainer.clientHeight / 2;
+            state.transform.scale = currentScale;
+            state.transform.x = centerX - (x * currentScale);
+            state.transform.y = centerY - (y * currentScale);
+            applyTransform();
+        }
+
+        window.handleZoom = function(factor) {
+            const newScale = Math.min(3.0, Math.max(0.15, state.transform.scale * factor));
+            const centerX = mapContainer.clientWidth / 2;
+            const centerY = mapContainer.clientHeight / 2;
+            state.transform.x = centerX - ((centerX - state.transform.x) / state.transform.scale) * newScale;
+            state.transform.y = centerY - ((centerY - state.transform.y) / state.transform.scale) * newScale;
+            state.transform.scale = newScale;
+            applyTransform();
+        };
+
+        window.resetView = function() {
+            state.transform.scale = 0.7;
+            moveTo(stationsData["서울역"].x, stationsData["서울역"].y, 0.7);
+            state.searchTerm = "";
+            state.highlightLine = null;
+            state.selectedStation = null;
+            searchInput.value = "";
+            renderSidebarFilters();
+            renderMap();
+            renderDetailCard();
+        };
+
+        // --- 렌더링 로직 ---
+        function renderSidebarFilters() {
+            let html = '';
+            Object.entries(lines).filter(([_, l]) => !l.isBranch).forEach(([id, line]) => {
+                const isHighlighted = state.highlightLine === line.name;
+                const btnClass = isHighlighted 
+                    ? 'bg-indigo-600/20 border-indigo-500 text-white' 
+                    : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10 hover:text-white';
+                
+                html += `
+                    <button onclick="toggleHighlight('${line.name}')" class="w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${btnClass} mb-2">
+                        <div class="w-3 h-3 rounded-full shrink-0" style="background-color: ${line.color}"></div>
+                        <span class="text-xs font-semibold truncate text-left">${line.name}</span>
+                    </button>
+                `;
+            });
+            lineFilters.innerHTML = html;
+        }
+
+        function renderMap() {
+            // SVG 노선
+            let svgHtml = '';
+            Object.entries(lines).forEach(([id, line]) => {
+                const pts = line.stations.map(s => stationsData[s]).filter(Boolean).map(p => `${p.x},${p.y}`).join(' ');
+                const isDimmed = state.highlightLine && state.highlightLine !== line.name;
+                const opacity = isDimmed ? 0.08 : 0.85;
+                svgHtml += `<polyline points="${pts}" stroke="${line.color}" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round" style="opacity: ${opacity}; transition: opacity 0.4s ease;"></polyline>`;
+            });
+            svgLayer.innerHTML = svgHtml;
+
+            // HTML 역 노드
+            let stHtml = '';
+            Object.entries(stationsData).forEach(([name, pos]) => {
+                const myLines = stationMembership[name] || [];
+                const isTransfer = myLines.length > 1;
+                const isSelected = state.selectedStation === name;
+                const isSearchMatch = !state.searchTerm || name.includes(state.searchTerm);
+                const isLineMatch = !state.highlightLine || myLines.some(l => l.name === state.highlightLine);
+                const opacity = (isSearchMatch && isLineMatch) ? 1 : 0.12;
+                
+                const zIndex = isSelected ? 100 : (isTransfer ? 30 : 20);
+                const borderColor = isTransfer ? '#334155' : (myLines[0]?.color || '#fff');
+                const circleClass = isSelected ? 'scale-[1.8] ring-4 ring-indigo-500/40 border-indigo-500' : 'hover:scale-125 border-slate-700';
+                const textClass = isSelected ? 'text-indigo-400 scale-125 bg-slate-900/80' : 'text-white';
+
+                stHtml += `
+                    <div class="station-node" style="left: ${pos.x}px; top: ${pos.y}px; opacity: ${opacity}; z-index: ${zIndex};">
+                        <div onclick="selectStation(event, '${name}')" class="station-circle ${circleClass}" style="width: 18px; height: 18px; border-color: ${borderColor}; border-width: 3px;"></div>
+                        <div class="station-label ${textClass}">${name}</div>
+                    </div>
+                `;
+            });
+            stationLayer.innerHTML = stHtml;
+        }
+
+        function renderDetailCard() {
+            if (state.selectedStation) {
+                detailCard.classList.remove('hidden');
+                document.getElementById('detail-title').innerText = state.selectedStation;
+                
+                const linesHtml = (stationMembership[state.selectedStation] || []).map(l => `
+                    <div class="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/5">
+                        <div class="w-2.5 h-2.5 rounded-full" style="background-color: ${l.color}"></div>
+                        <span class="text-[11px] font-bold text-slate-200">${l.name}</span>
+                    </div>
+                `).join('');
+                document.getElementById('detail-lines').innerHTML = linesHtml;
+            } else {
+                detailCard.classList.add('hidden');
+            }
+        }
+
+        // --- 상호작용 핸들러 ---
+        window.toggleMenu = function() {
+            state.isMenuOpen = !state.isMenuOpen;
+            if (state.isMenuOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                menuBtn.classList.add('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                menuBtn.classList.remove('hidden');
+            }
+        };
+
+        window.toggleHighlight = function(lineName) {
+            state.highlightLine = state.highlightLine === lineName ? null : lineName;
+            renderSidebarFilters();
+            renderMap();
+        };
+
+        window.selectStation = function(e, name) {
+            e.stopPropagation();
+            state.selectedStation = name;
+            moveTo(stationsData[name].x, stationsData[name].y);
+            renderMap();
+            renderDetailCard();
+        };
+
+        window.closeDetail = function() {
+            state.selectedStation = null;
+            renderMap();
+            renderDetailCard();
+        };
+
+        function handleSearch(e) {
+            state.searchTerm = e.target.value;
+            renderMap();
+            
+            if (state.searchTerm.length >= 1) {
+                const match = Object.keys(stationsData).find(name => name === state.searchTerm);
+                if (match) {
+                    moveTo(stationsData[match].x, stationsData[match].y, 1.2);
+                    state.selectedStation = match;
+                    renderDetailCard();
+                    renderMap(); // re-render with selection
+                }
+            }
+        }
+
+        // --- 드래그 핸들러 ---
+        function onMouseDown(e) {
+            if (e.button !== 0 || e.target.closest('button')) return;
+            state.isDragging = true;
+            state.lastPos = { x: e.clientX, y: e.clientY };
+            mapContainer.style.cursor = 'grabbing';
+        }
+
+        function onMouseMove(e) {
+            if (!state.isDragging) return;
+            const dx = e.clientX - state.lastPos.x;
+            const dy = e.clientY - state.lastPos.y;
+            state.transform.x += dx;
+            state.transform.y += dy;
+            state.lastPos = { x: e.clientX, y: e.clientY };
+            applyTransform();
+        }
+
+        function onTouchStart(e) {
+            if (e.touches.length !== 1 || e.target.closest('button')) return;
+            state.isDragging = true;
+            state.lastPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+
+        function onTouchMove(e) {
+            if (!state.isDragging || e.touches.length !== 1) return;
+            e.preventDefault(); // 스크롤 방지
+            const dx = e.touches[0].clientX - state.lastPos.x;
+            const dy = e.touches[0].clientY - state.lastPos.y;
+            state.transform.x += dx;
+            state.transform.y += dy;
+            state.lastPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            applyTransform();
+        }
+
+        function stopDragging() {
+            state.isDragging = false;
+            mapContainer.style.cursor = 'grab';
+        }
+
+        // --- 실행 ---
+        window.onload = init;
+
+    </script>
+</body>
+</html>
