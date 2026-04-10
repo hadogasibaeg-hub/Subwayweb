@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>수도권 지하철 지도</title>
+    <title>서울 메트로 맵</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
@@ -78,7 +78,7 @@
         <div class="p-6 flex flex-col h-full">
             <div class="flex items-center justify-between mb-8">
                 <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
-                    <span class="p-1.5 bg-indigo-600 rounded-md">🚇</span> 서울 지하철 지도 [개발: 하시소프트웨어]
+                    <span class="p-1.5 bg-indigo-600 rounded-md">🚇</span> 메트로 맵 [하시소프트웨어]
                 </h1>
                 <button onclick="toggleMenu()" class="p-2 hover:bg-white/10 rounded-full text-slate-400">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -165,8 +165,7 @@
             },
             "L4": { 
                 name: "4호선", color: "#00A5DE", 
-                // 수유, 미아사거리, 길음역이 올바른 순서로 추가됨
-                stations: ["진접", "오남", "별내별가람", "불암산", "상계", "노원", "창동", "쌍문", "수유", "미아", "미아사거리", "길음", "성신여대입구", "혜화", "동대문", "동대문역사문화공원", "충무로", "서울역", "삼각지", "이촌", "동작", "이수", "사당", "남태령", "선바위", "과천", "금정", "한대앞", "안산", "초지", "오이도"] 
+                stations: ["진접", "오남", "별내별가람", "불암산", "상계", "노원", "창동", "쌍문", "미아", "성신여대입구", "혜화", "동대문", "동대문역사문화공원", "충무로", "서울역", "삼각지", "이촌", "동작", "이수", "사당", "남태령", "선바위", "과천", "금정", "한대앞", "안산", "초지", "오이도"] 
             },
             "L5": { 
                 name: "5호선", color: "#996CAC", 
@@ -230,7 +229,7 @@
             }
         };
 
-        // 역 좌표 데이터 (수유, 미아사거리, 길음 추가 및 간격 조정 완료)
+        // 역 좌표 데이터
         const stationsData = {
             "연천": {x: 1500, y: 100}, "동두천": {x: 1500, y: 200}, "의정부": {x: 1500, y: 350}, "회룡": {x: 1500, y: 500}, 
             "도봉산": {x: 1500, y: 800}, "장암": {x: 1650, y: 950}, "창동": {x: 1500, y: 1000}, "석계": {x: 1500, y: 1250}, 
@@ -267,16 +266,7 @@
             
             "양재": {x: 1800, y: 2700}, "수서": {x: 2200, y: 2700}, "오금": {x: 2500, y: 2700}, "진접": {x: 2200, y: 500}, "오남": {x: 2150, y: 650}, 
             "별내별가람": {x: 2100, y: 800}, "불암산": {x: 2000, y: 950}, "상계": {x: 1900, y: 1000}, "노원": {x: 1800, y: 1000}, 
-            
-            // 4호선 창동~성신여대입구 구간의 상세 좌표 간격 보정
-            "쌍문": {x: 1460, y: 1060}, 
-            "수유": {x: 1420, y: 1120}, 
-            "미아": {x: 1380, y: 1180}, 
-            "미아사거리": {x: 1340, y: 1240}, 
-            "길음": {x: 1300, y: 1300}, 
-            "성신여대입구": {x: 1250, y: 1350}, 
-            
-            "혜화": {x: 1350, y: 1450}, 
+            "쌍문": {x: 1450, y: 1150}, "미아": {x: 1350, y: 1250}, "성신여대입구": {x: 1250, y: 1350}, "혜화": {x: 1350, y: 1450}, 
             "동대문": {x: 1200, y: 1650}, "삼각지": {x: 1050, y: 2150}, "이촌": {x: 1200, y: 2250}, "동작": {x: 1400, y: 2450}, 
             "이수": {x: 1400, y: 2700}, "금정": {x: 350, y: 3000}, "김포공항": {x: 300, y: 2100}, 
             "남태령": {x: 1200, y: 2800}, "선바위": {x: 1100, y: 2850}, "과천": {x: 800, y: 2900}, 
@@ -287,7 +277,8 @@
             
             "월곶": {x: 50, y: 3350}, "인천논현": {x: 0, y: 3200}, "원인재": {x: -30, y: 3000}, "송도": {x: -50, y: 2800}, "인하대": {x: -70, y: 2600},
 
-            "대화": {x: 150, y: 900}, "일산": {x: 150, y: 1000}, "백마": {x: 150, y: 1150}, "대곡": {x: 150, y: 1300}, "능곡": {x: 150, y: 1500}, 
+            // 대화역 x좌표 분리
+            "대화": {x: 50, y: 900}, "일산": {x: 150, y: 1000}, "백마": {x: 150, y: 1150}, "대곡": {x: 150, y: 1300}, "능곡": {x: 150, y: 1500}, 
             "원종": {x: 225, y: 2225}, "부천종합운동장": {x: 150, y: 2350},
             "소새울": {x: 150, y: 2550}, "시흥대야": {x: 150, y: 2650}, "신천": {x: 150, y: 2750}, "신현": {x: 150, y: 2850},
             "시흥시청": {x: 150, y: 2950}, "시흥능곡": {x: 150, y: 3050}, "달미": {x: 150, y: 3150}, "선부": {x: 150, y: 3250},
@@ -310,7 +301,7 @@
             "양재시민의숲": {x: 1800, y: 2850}, "판교": {x: 1800, y: 3100}, "광교": {x: 1800, y: 3500}, 
             "이매": {x: 2000, y: 3100}, "경기광주": {x: 2200, y: 3100}, "곤지암": {x: 2400, y: 3250}, "이천": {x: 2600, y: 3250}, "여주": {x: 2800, y: 3250},
             
-            "신창": {x: 350, y: 4000}, "강동": {x: 2500, y: 1600}, "마천": {x: 2600, y: 2000}, "신내": {x: 2050, y: 1300},
+            "신창": {x: 350, y: 4000}, "강동": {x: 2500, y: 1600}, "마천": {x: 2500, y: 2900}, "신내": {x: 2050, y: 1300},
             "개화": {x: 150, y: 2100}, "문산": {x: 150, y: 500}, "지평": {x: 2900, y: 1500}, "석촌": {x: 2400, y: 2300},
             
             "발곡": {x: 1600, y: 550}, "의정부시청": {x: 1400, y: 450}, "탑석": {x: 1700, y: 400},
@@ -355,6 +346,42 @@
             const stationLayer = document.getElementById('station-layer');
             svg.innerHTML = '';
             stationLayer.innerHTML = '';
+
+            // --- 한강(Han River) 렌더링 로직 추가 ---
+            // 물결이 굽이치는 모양을 큐빅 베지어 곡선(C)으로 부드럽게 구현
+            const riverBg = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const riverPathD = "M 3200,1400 C 2800,1450 2600,1450 2450,1450 C 2300,1450 2300,1700 2200,1700 C 2100,1700 2050,1950 1950,1950 C 1850,1950 1800,2125 1700,2125 C 1600,2125 1400,2350 1300,2350 C 1200,2350 1000,2225 900,2225 C 800,2225 700,2100 700,2000 C 700,1900 500,1850 400,1850 C 300,1850 200,1500 150,1500 C 100,1500 -100,1400 -200,1400";
+            
+            riverBg.setAttribute("d", riverPathD);
+            riverBg.setAttribute("fill", "none");
+            riverBg.setAttribute("stroke", "#3b82f6"); // 밝은 파란색 (외곽 글로우 효과)
+            riverBg.setAttribute("stroke-width", "70"); 
+            riverBg.setAttribute("stroke-linecap", "round");
+            riverBg.style.opacity = "0.15";
+            svg.appendChild(riverBg);
+
+            const riverMain = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            riverMain.setAttribute("d", riverPathD);
+            riverMain.setAttribute("fill", "none");
+            riverMain.setAttribute("stroke", "#1e3a8a"); // 깊은 파란색 (강 본류)
+            riverMain.setAttribute("stroke-width", "50");
+            riverMain.setAttribute("stroke-linecap", "round");
+            riverMain.style.opacity = "0.5";
+            svg.appendChild(riverMain);
+
+            // 한강 텍스트 추가
+            const riverText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            riverText.setAttribute("x", "1100");
+            riverText.setAttribute("y", "2300"); // 이촌/여의도 부근
+            riverText.setAttribute("fill", "#93c5fd"); // 눈에 잘 띄는 연한 블루
+            riverText.setAttribute("font-size", "22");
+            riverText.setAttribute("font-weight", "900");
+            riverText.setAttribute("letter-spacing", "10");
+            riverText.style.opacity = "0.7";
+            riverText.textContent = "한강";
+            riverText.setAttribute("transform", "rotate(-5 1100 2300)"); // 흐름에 맞춰 살짝 회전
+            svg.appendChild(riverText);
+            // ----------------------------------------
 
             const segmentMap = new Map();
             
