@@ -407,12 +407,13 @@
         ];
 
         let state = {
-            transform: { x: -800, y: -500, scale: 0.65 },
-            isDragging: false,
-            lastPos: { x: 0, y: 0 },
-            selectedStation: null,
-            highlightLine: null
-        };
+    transform: { x: -800, y: -500, scale: 0.65 },
+    isDragging: false,
+    lastPos: { x: 0, y: 0 },
+    selectedStation: null,
+    highlightLine: null,
+    initialPinchDist: 0  // <--- 이 줄을 추가해 주세요!
+};
 
         const stationMembership = {};
         Object.entries(lines).forEach(([id, line]) => {
@@ -580,6 +581,54 @@
             const centerY = container.clientHeight / 2;
             handleWheelZoom(factor, centerX, centerY);
         }
+
+        // (참고: container 변수가 위쪽에 선언되어 있지 않다면 한번 선언해 주어야 합니다)
+const mapContainer = document.getElementById('map-container');
+
+// 1. 터치 시작
+mapContainer.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+        state.initialPinchDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+    } else if (e.touches.length === 1) {
+        state.isDragging = true;
+        state.lastPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+}, { passive: false });
+
+// 2. 터치 이동 (확대/축소 및 드래그)
+mapContainer.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2) {
+        e.preventDefault(); 
+        const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        
+        if (state.initialPinchDist > 0) {
+            const factor = dist / state.initialPinchDist;
+            const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            
+            // 기존에 만들어둔 handleWheelZoom 함수 재사용
+            handleWheelZoom(factor, centerX, centerY);
+        }
+        state.initialPinchDist = dist;
+    } else if (e.touches.length === 1 && state.isDragging) {
+        state.transform.x += (e.touches[0].clientX - state.lastPos.x);
+        state.transform.y += (e.touches[0].clientY - state.lastPos.y);
+        state.lastPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        applyTransform();
+    }
+}, { passive: false });
+
+// 3. 터치 종료
+mapContainer.addEventListener('touchend', (e) => {
+    state.isDragging = false;
+    state.initialPinchDist = 0;
+});
 
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('-translate-x-full');
